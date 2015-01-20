@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+  <meta charset="UTF-8">
+  <title></title>
+  <style>
+    body {
+      margin: 0;
+      background-color: #000;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<script src="../../dist/mogl.js"></script>
+
+<script>
+
+  var world = new MoGl.World();
+  var renderer = new MoGl.WebGLRenderer(640, 480, world);
+
+  var cube = MoGl.ObjectFactory.Sphere(1, 20, 20);
+  cube.drawingMode = WebGLRenderingContext.TRIANGLES;
+
+  cube.z = -10;
+
+  world.add(cube);
+
+  document.body.appendChild(renderer.canvas);
+  renderer.initShapes();
+
+  var frame = 0;
+
+  window.setInterval(function () {
+//    console.log(frame);
+    frame = 0;
+  }, 1000);
+
+
+  cube.color.hex = '#FFAAFF';
+  cube.color.rgba(1, 0, 0, 0);
+
+  var lastTime = Date.now();
+
+  function redraw() {
+    frame++;
+    renderer.draw();
+
+    requestAnimationFrame(redraw);
+  }
+
+  window.onmousewheel = function (e) {
+    renderer.camera.zoom += e.wheelDeltaY / 240;
+    renderer.camera.updatePerspective();
+  };
+
+  redraw();
+
+
+</script>
+
+</body>
+</html>

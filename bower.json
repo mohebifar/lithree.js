@@ -1,0 +1,28 @@
+{
+  "name": "lithree.js",
+  "version": "1.0.0",
+  "homepage": "https://github.com/mohebifar/lithree.js",
+  "authors": [
+    "Mohamad Mohebifar <netfars@gmail.com>"
+  ],
+  "description": "A simple 3d library for javascript",
+  "moduleType": [
+    "amd",
+    "es6",
+    "globals"
+  ],
+  "keywords": [
+    "3d",
+    "webgl",
+    "mogl",
+    "three.js"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
