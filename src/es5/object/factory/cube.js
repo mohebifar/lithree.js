@@ -30,8 +30,8 @@ function CubeFactory() {
   20, 21, 22, 20, 22, 23 // Left face
   ];
 
-  cube.darwingFunction = 0;
-  cube.drawingMode = WebGLRenderingContext.TRIANGLES;
+  cube.darwingFunction = Common.drawingFunctions.ELEMENTS;
+  cube.drawingMode = Common.drawingMode.TRIANGLES;
 
   return cube;
 }

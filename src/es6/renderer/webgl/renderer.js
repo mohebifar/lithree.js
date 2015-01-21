@@ -10,7 +10,7 @@ class WebGLRenderer extends Renderer {
    * @param {Number} height
    * @param {World} world
    */
-  constructor(width, height, world) {
+  constructor(width, height, world, color = null) {
     super.constructor(width, height);
 
     this.world = world;
@@ -22,6 +22,7 @@ class WebGLRenderer extends Renderer {
     this.canvas = document.createElement('canvas');
     this.canvas.setAttribute('width', this.width);
     this.canvas.setAttribute('height', this.height);
+    this.color = color;
 
     this.initGl();
   }
@@ -43,7 +44,10 @@ class WebGLRenderer extends Renderer {
     this.gl.viewportWidth = this.canvas.width;
     this.gl.viewportHeight = this.canvas.height;
 
-    this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    if(this.color !== null) {
+      this.gl.clearColor.apply(this.gl, this.color.array);
+    }
+
     this.gl.enable(this.gl.DEPTH_TEST);
 
   }
@@ -57,9 +61,7 @@ class WebGLRenderer extends Renderer {
     for (var i = this.world.children.length; i--;) {
       var object = this.world.children[i];
 
-      if (object.drawingMode === false) {
-        object.drawingMode = this.gl.LINE_STRIP;
-      }
+      object.shader = new ShaderProgrammer(this, object);
 
       object.buffers.vertices = this.gl.createBuffer();
 
@@ -78,6 +80,15 @@ class WebGLRenderer extends Renderer {
         object.buffers.vertexColor.numItems = object.vertexColor.length;
       }
 
+      if (object.vertexNormals) {
+        object.buffers.normals = this.gl.createBuffer();
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, object.buffers.normals);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(object.vertexNormals), this.gl.STATIC_DRAW);
+
+        object.buffers.normals.itemSize = 3;
+        object.buffers.normals.numItems = object.vertexNormals.length;
+      }
+
       if (object.vertexIndex) {
         object.buffers.vertexIndex = this.gl.createBuffer();
         this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, object.buffers.vertexIndex);
@@ -87,20 +98,6 @@ class WebGLRenderer extends Renderer {
         object.buffers.vertexIndex.numItems = object.vertexIndex.length;
       }
 
-      var vertexShader = this.compileShader('attribute vec3 aVertexPosition;uniform mat4 uMVMatrix;uniform mat4 uPMatrix;void main(void) {gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);}', this.gl.VERTEX_SHADER);
-      var fragmentShader = this.compileShader('precision mediump float; uniform vec4 uvColor; void main(void) {gl_FragColor = uvColor;}', this.gl.FRAGMENT_SHADER);
-
-      var shaderProgram = this.createProgram(vertexShader, fragmentShader);
-
-      shaderProgram.vertexPositionAttribute = this.gl.getAttribLocation(shaderProgram, "aVertexPosition");
-
-      this.gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
-
-      shaderProgram.pMatrixUniform = this.gl.getUniformLocation(shaderProgram, "uPMatrix");
-      shaderProgram.mvMatrixUniform = this.gl.getUniformLocation(shaderProgram, "uMVMatrix");
-      shaderProgram.colorUniform = this.gl.getUniformLocation(shaderProgram, "uvColor");
-
-      object.shaderProgram = shaderProgram;
     }
   }
 
@@ -114,94 +111,19 @@ class WebGLRenderer extends Renderer {
 
     for (var i = this.world.children.length; i--;) {
 
-      var mvMatrix = mat4.create();
-
       var object = this.world.children[i];
       var buffers= object.buffers;
-      var shaderProgram = object.shaderProgram;
 
-      this.gl.useProgram(shaderProgram);
+      object.shader.use();
+      object.shader.assignValues();
 
-      mat4.identity(mvMatrix);
-      mat4.lookAt(mvMatrix, this.camera.position, this.camera.lookAt, this.camera.up);
-      mat4.translate(mvMatrix, mvMatrix, object.position);
-      mat4.rotateX(mvMatrix, mvMatrix, object.rotation[0]);
-      mat4.rotateY(mvMatrix, mvMatrix, object.rotation[1]);
-
-      mat4.rotateZ(mvMatrix, mvMatrix, object.rotation[2]);
-
-      // Set Matrix Uniform
-      this.gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, this.camera.matrix);
-      this.gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);
-      this.gl.uniform4fv(shaderProgram.colorUniform, object.color.toArray());
-
-      this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffers.vertices);
-      this.gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, buffers.vertices.itemSize, this.gl.FLOAT, false, 0, 0);
-
-      if (object.darwingFunction == 0) {
+      if (object.darwingFunction === Common.drawingFunctions.ELEMENTS) {
         this.gl.drawElements(object.drawingMode, buffers.vertexIndex.numItems, this.gl.UNSIGNED_SHORT, 0);
-      } else {
+      } else if (object.darwingFunction === Common.drawingFunctions.ARRAYS)  {
         this.gl.drawArrays(object.drawingMode, 0, buffers.vertices.numItems);
       }
     }
 
-  }
-
-  /**
-   * Creates and compiles a shader.
-   *
-   * @method compileShader
-   * @param {string} shaderSource The GLSL source code for the shader.
-   * @param {number} shaderType The type of shader, VERTEX_SHADER or FRAGMENT_SHADER.
-   * @return {WebGLShader} The shader.
-   */
-  compileShader(shaderSource, shaderType) {
-    // Create the shader object
-    var shader = this.gl.createShader(shaderType);
-
-    // Set the shader source code.
-    this.gl.shaderSource(shader, shaderSource);
-
-    // Compile the shader
-    this.gl.compileShader(shader);
-
-    // Check if it compiled
-    var success = this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS);
-    if (!success) {
-      // Something went wrong during compilation; get the error
-      throw "could not compile shader:" + this.gl.getShaderInfoLog(shader);
-    }
-
-    return shader;
-  }
-
-  /**
-   * Creates a program from 2 shaders.
-   *
-   * @method createProgram
-   * @param {WebGLShader} vertexShader A vertex shader.
-   * @param {WebGLShader} fragmentShader A fragment shader.
-   * @return {WebGLProgram} A program.
-   */
-  createProgram(vertexShader, fragmentShader) {
-    // create a program.
-    var program = this.gl.createProgram();
-
-    // attach the shaders.
-    this.gl.attachShader(program, vertexShader);
-    this.gl.attachShader(program, fragmentShader);
-
-    // link the program.
-    this.gl.linkProgram(program);
-
-    // Check if it linked.
-    var success = this.gl.getProgramParameter(program, this.gl.LINK_STATUS);
-    if (!success) {
-      // something went wrong with the link
-      throw ("program filed to link:" + this.gl.getProgramInfoLog(program));
-    }
-
-    return program;
   }
 
 }

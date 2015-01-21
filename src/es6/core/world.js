@@ -3,14 +3,23 @@ class World {
 
   constructor() {
     this.children = [];
+    this.lights = [];
   }
 
   add(object) {
-    this.children.push(object);
+    if(object instanceof DirectionalLight) {
+      this.lights.push(object);
+    } else {
+      this.children.push(object);
+    }
   }
 
   remove(object) {
-    this.children.remove(object);
+    if(object instanceof DirectionalLight) {
+      this.lights.remove(object);
+    } else {
+      this.children.remove(object);
+    }
   }
 
 }

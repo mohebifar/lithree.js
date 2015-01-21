@@ -1,3 +1,5 @@
+var ob_i = 0;
+
 export default
 class Object3D {
 
@@ -12,23 +14,18 @@ class Object3D {
     this.vertexColor = false;
     this.textureCoords = false;
 
-    this.webGl = {
-      shaderProgram: false,
-      uniforms: {},
-      attributes: {},
-      buffers: {}
-    };
+    this.index = ob_i++;
 
-    this.buffers = {
+    this.buffers = {};
 
-    };
+    this.drawingMode = Common.drawingMode.TRIANGLES;
 
-    this.drawingMode = false;
-
-    this.darwingFunction = 1;
+    this.darwingFunction = 0;
     this.color = new Color();
 
-    this.mvMatrix = mat4.create();
+    this.shader = false;
+
+    this._mvMatrix = mat4.create();
   }
 
   set x(x) {
@@ -59,24 +56,38 @@ class Object3D {
     this.rotation[0] = x;
   }
 
-  get rotateX() {
-    return this.rotation[0];
-  }
-
   set rotateY(y) {
     this.rotation[1] = y;
-  }
-
-  get rotateY() {
-    return this.rotation[1];
   }
 
   set rotateZ(z) {
     this.rotation[2] = z;
   }
 
+  get rotateX() {
+    return this.rotation[0];
+  }
+
+  get rotateY() {
+    return this.rotation[1];
+  }
+
   get rotateZ() {
     return this.rotation[2];
+  }
+
+  getMatrix(camera) {
+    var mvMatrix = mat4.create();
+
+    mat4.lookAt(mvMatrix, camera.position, camera.lookAt, camera.up);
+
+    mat4.translate(mvMatrix, mvMatrix, this.position);
+
+    mat4.rotateX(mvMatrix, mvMatrix, this.rotation[0]);
+    mat4.rotateY(mvMatrix, mvMatrix, this.rotation[1]);
+    mat4.rotateZ(mvMatrix, mvMatrix, this.rotation[2]);
+
+    return mvMatrix;
   }
 
 }

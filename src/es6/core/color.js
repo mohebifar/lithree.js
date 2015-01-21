@@ -2,13 +2,13 @@ export default
 class Color {
 
   constructor(r = 1, g = 1, b = 1, alpha = 1) {
-    this.array = [r, g, b, alpha];
+    this.array = [r, g, b];
   }
 
   set hex(hex) {
     var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
 
-    hex = hex.replace(shorthandRegex, function(m, r, g, b) {
+    hex = hex.replace(shorthandRegex, function (m, r, g, b) {
       return r + r + g + g + b + b;
     });
 

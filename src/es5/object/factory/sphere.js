@@ -55,8 +55,9 @@ function SphereFactory() {
   sphere.vertexIndex = indexData;
   sphere.vertexNormals = normalData;
   sphere.vertices = vertexPositionData;
-  sphere.darwingFunction = 0;
-  sphere.drawingMode = WebGLRenderingContext.TRIANGLES;
+
+  sphere.darwingFunction = Common.drawingFunctions.ELEMENTS;
+  sphere.drawingMode = Common.drawingMode.TRIANGLES;
 
   return sphere;
 }

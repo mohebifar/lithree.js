@@ -2,7 +2,7 @@
 <html>
 <head lang="en">
   <meta charset="UTF-8">
-  <title></title>
+  <title>lithree.js</title>
   <style>
     body {
       margin: 0;
@@ -16,7 +16,6 @@
 <script src="../../dist/mogl.js"></script>
 
 <script>
-
   var world = new MoGl.World();
   var renderer = new MoGl.WebGLRenderer(640, 480, world);
 
@@ -27,37 +26,29 @@
 
   world.add(cube);
 
-  document.body.appendChild(renderer.canvas);
-  renderer.initShapes();
+  cube.color.hex = '#333';
 
-  var frame = 0;
-
-  window.setInterval(function () {
-//    console.log(frame);
-    frame = 0;
-  }, 1000);
-
-
-  cube.color.hex = '#FFAAFF';
-  cube.color.rgba(1, 0, 0, 0);
-
+  var light = new MoGl.DirectionalLight();
+  light.direction = [1.1, 0.8, 1.2];
+  light.color.rgb(0.2, 0.2, 0.2);
+  world.add(light);
   var lastTime = Date.now();
 
+  renderer.initShapes();
+
   function redraw() {
-    frame++;
     renderer.draw();
 
     requestAnimationFrame(redraw);
   }
 
+  document.body.appendChild(renderer.canvas);
   window.onmousewheel = function (e) {
     renderer.camera.zoom += e.wheelDeltaY / 240;
     renderer.camera.updatePerspective();
   };
 
   redraw();
-
-
 </script>
 
 </body>

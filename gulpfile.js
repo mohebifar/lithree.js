@@ -8,7 +8,7 @@ var livereload = require('gulp-livereload');
 var runSequence = require('run-sequence');
 var uglify = require('gulp-uglify');
 
-gulp.task('compress', function() {
+gulp.task('compress', function () {
   gulp.src('dist/mogl.js')
     .pipe(uglify())
     .pipe(gulp.dest('dist/mogl.min.js'))
@@ -36,7 +36,16 @@ gulp.task('6to5', function () {
 
 gulp.task('concat', function () {
 
-  gulp.src(['./src/intro.js', './src/es5/**/*.js', './src/outro.js', 'node_modules/gl-matrix/dist/gl-matrix.js'])
+  gulp.src(
+    ['./src/intro.js',
+      './src/es5/common.js',
+      './src/es5/**/*.js',
+      'node_modules/gl-matrix/src/gl-matrix/common.js',
+      'node_modules/gl-matrix/src/gl-matrix/mat3.js',
+      'node_modules/gl-matrix/src/gl-matrix/mat4.js',
+      'node_modules/gl-matrix/src/gl-matrix/vec4.js',
+      'node_modules/gl-matrix/src/gl-matrix/vec3.js',
+      './src/outro.js'])
     .pipe(concat('mogl.js'))
     .pipe(gulp.dest('./dist/'));
 

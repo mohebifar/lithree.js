@@ -11,7 +11,7 @@ var Color = (function () {
     var g = arguments[1] === undefined ? 1 : arguments[1];
     var b = arguments[2] === undefined ? 1 : arguments[2];
     var alpha = arguments[3] === undefined ? 1 : arguments[3];
-    this.array = [r, g, b, alpha];
+    this.array = [r, g, b];
   }
 
   _prototypeProperties(Color, null, {
