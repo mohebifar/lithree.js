@@ -1,5 +1,5 @@
 # lithree.js
-**Lithree.js** is a lightweight 3D WebGL framework. It's just about 30kb.
+**lithree.js** is a lightweight 3D WebGL framework. It's just about 30kb. lithree.js is originally written in ES6 and is transcompiled to ES5.
 
 Usage
 =====
@@ -12,7 +12,7 @@ Create an object using object factories
 
     var sphere = MoGl.ObjectFactory.Sphere(1, 20, 20);
 
-Add object to world
+Add object to the world
 
     world.add(sphere);
 
