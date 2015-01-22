@@ -6,6 +6,34 @@ class Vector3 extends Array {
     this.push(z);
   }
 
+  clone() {
+    return new Vector3(this.x, this.y, this.z);
+  }
+
+  set x(x) {
+    this[0] = x;
+  }
+
+  set y(y) {
+    this[1] = y;
+  }
+
+  set z(z) {
+    this[2] = z;
+  }
+
+  get x() {
+    return this[0];
+  }
+
+  get y() {
+    return this[1];
+  }
+
+  get z() {
+    return this[2];
+  }
+
   set(x, y, z) {
     this.x = x;
     this.y = y;
@@ -82,33 +110,5 @@ class Vector3 extends Array {
 
   toArray() {
     return [this.x, this.y, this.z];
-  }
-
-  clone() {
-    return new Vector3(this.x, this.y, this.z);
-  }
-
-  set x(x) {
-    this[0] = x;
-  }
-
-  set y(y) {
-    this[1] = y;
-  }
-
-  set z(z) {
-    this[2] = z;
-  }
-
-  get x() {
-    return this[0];
-  }
-
-  get y() {
-    return this[1];
-  }
-
-  get z() {
-    return this[2];
   }
 }
