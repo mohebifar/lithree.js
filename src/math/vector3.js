@@ -6,6 +6,12 @@ class Vector3 extends Array {
     this.push(z);
   }
 
+  set(x, y, z) {
+    this.x = x;
+    this.y = y;
+    this.z = z;
+  }
+
   add(value) {
     if (value instanceof Vector3) {
       this.x += value.x;

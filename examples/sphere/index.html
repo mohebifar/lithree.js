@@ -5,7 +5,6 @@
   <title>lithree.js</title>
   <style>
     body {
-      overflow: hidden;
       margin: 0;
       background-color: #000;
       text-align: center;
@@ -18,19 +17,19 @@
 
 <script>
   var world = new LiThree.World();
-  var renderer = new LiThree.WebGLRenderer(window.innerWidth, window.innerHeight, world);
+  var renderer = new LiThree.WebGLRenderer(640, 480, world);
 
-  var cube = LiThree.ObjectFactory.Cube();
-  cube.drawingMode = WebGLRenderingContext.TRIANGLES;
+  var sphere = LiThree.ObjectFactory.Sphere(2, 26, 26);
+  sphere.drawingMode = WebGLRenderingContext.TRIANGLES;
 
-  cube.position.z = -10;
+  sphere.position.z = -10;
 
-  world.add(cube);
+  world.add(sphere);
 
-  cube.color.hex = '#A22';
+  sphere.color.hex = '#A22';
 
   var light = new LiThree.DirectionalLight();
-  light.direction = [1.1, 0.8, 1.2];
+  light.direction.set(1.1, 0.8, 1.2);
   light.color.rgb(0.2, 0.2, 0.2);
   world.add(light);
   var lastTime = Date.now();
@@ -75,8 +74,8 @@
       lastPoint.x = e.clientX;
       lastPoint.y = e.clientY;
 
-      cube.rotation.x += delta.y / 200;
-      cube.rotation.y += delta.x / 200;
+      sphere.rotation.x += delta.y / 200;
+      sphere.rotation.y += delta.x / 200;
     }
 
   };
