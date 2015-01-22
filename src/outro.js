@@ -15,13 +15,14 @@
     return b
   };
 
-  root.MoGl = {
+  root.LiThree = {
     Renderer: Renderer,
     WebGLRenderer: WebGLRenderer,
     World: World,
     Object3D: Object3D,
     Camera: Camera,
     Color: Color,
+    Vector3: Vector3,
     DirectionalLight: DirectionalLight,
     ObjectFactory: {
       Cube: CubeFactory,

@@ -34,7 +34,6 @@ class ShaderProgrammer {
     }
 
     var program = `${pars} void main() { ${main} }`;
-    console.log(program);
     return this.compile(program, WebGLRenderingContext.VERTEX_SHADER);
   }
 

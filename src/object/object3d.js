@@ -4,9 +4,9 @@ export default
 class Object3D {
 
   constructor() {
-    this.scale = vec3.create();
-    this.position = vec3.create();
-    this.rotation = vec3.create();
+    this.scale = new Vector3();
+    this.position = new Vector3();
+    this.rotation = new Vector3();
 
     this.vertices = [];
     this.vertexNormals = false;
@@ -26,54 +26,6 @@ class Object3D {
     this.shader = false;
 
     this._mvMatrix = mat4.create();
-  }
-
-  set x(x) {
-    this.position[0] = x;
-  }
-
-  set y(y) {
-    this.position[1] = y;
-  }
-
-  set z(z) {
-    this.position[2] = z;
-  }
-
-  get x() {
-    return this.position[0];
-  }
-
-  get y() {
-    return this.position[1];
-  }
-
-  get z() {
-    return this.position[2];
-  }
-
-  set rotateX(x) {
-    this.rotation[0] = x;
-  }
-
-  set rotateY(y) {
-    this.rotation[1] = y;
-  }
-
-  set rotateZ(z) {
-    this.rotation[2] = z;
-  }
-
-  get rotateX() {
-    return this.rotation[0];
-  }
-
-  get rotateY() {
-    return this.rotation[1];
-  }
-
-  get rotateZ() {
-    return this.rotation[2];
   }
 
   getMatrix(camera) {

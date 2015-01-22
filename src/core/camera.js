@@ -24,6 +24,7 @@ class Camera {
     return this._zoom;
   }
 
+
   updatePerspective() {
     var fovy = 2 * Math.atan(Math.tan(this.fovy * 0.5) / this._zoom);
     mat4.perspective(this.matrix, fovy, this.aspect, this.near, this.far);
