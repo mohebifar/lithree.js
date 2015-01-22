@@ -26,8 +26,6 @@ grunt.initConfig({
       src: [
         'src/intro.js',
         '.tmp/es5/**/*.js',
-        'node_modules/gl-matrix/src/gl-matrix/common.js',
-        'node_modules/gl-matrix/src/gl-matrix/mat3.js',
         'src/outro.js'
       ],
       dest: 'dist/lithree.js'
