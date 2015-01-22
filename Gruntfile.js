@@ -28,8 +28,6 @@ grunt.initConfig({
         '.tmp/es5/**/*.js',
         'node_modules/gl-matrix/src/gl-matrix/common.js',
         'node_modules/gl-matrix/src/gl-matrix/mat3.js',
-        'node_modules/gl-matrix/src/gl-matrix/mat4.js',
-        'node_modules/gl-matrix/src/gl-matrix/vec4.js',
         'src/outro.js'
       ],
       dest: 'dist/lithree.js'
@@ -55,4 +53,4 @@ grunt.initConfig({
 
 grunt.registerTask('default', ['6to5', 'concat']);
 
-grunt.registerTask('build', ['default', 'compress']);
+grunt.registerTask('build', ['default', 'uglify']);
