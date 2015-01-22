@@ -187,9 +187,9 @@ var World = (function () {
     remove: {
       value: function remove(object) {
         if (object instanceof DirectionalLight) {
-          this.lights.remove(object);
+          this.lights.splice(this.lights.indexOf(object), 1);
         } else {
-          this.children.remove(object);
+          this.children.splice(this.children.indexOf(object), 1);
         }
       },
       writable: true,
@@ -366,6 +366,25 @@ function CubeFactory() {
   16, 17, 18, 16, 18, 19, // Right face
   20, 21, 22, 20, 22, 23 // Left face
   ];
+
+  cube.vertexNormals = [
+  // Front face
+  0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1,
+
+  // Back face
+  0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1,
+
+  // Top face
+  0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0,
+
+  // Bottom face
+  0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0,
+
+  // Right face
+  1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0,
+
+  // Left face
+  -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0];
 
   cube.darwingFunction = Common.drawingFunctions.ELEMENTS;
   cube.drawingMode = Common.drawingMode.TRIANGLES;
@@ -628,6 +647,11 @@ var _prototypeProperties = function (child, staticProps, instanceProps) {
   if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
 };
 
+/**
+ * This class is used to create and compile a glsl program.
+ *
+ * @author Mohamad Mohebifar
+ */
 var ShaderProgrammer = (function () {
   function ShaderProgrammer(renderer, object) {
     this.object = object;

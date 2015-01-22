@@ -19,14 +19,14 @@
   var world = new MoGl.World();
   var renderer = new MoGl.WebGLRenderer(640, 480, world);
 
-  var cube = MoGl.ObjectFactory.Sphere(1, 20, 20);
+  var cube = MoGl.ObjectFactory.Cube();
   cube.drawingMode = WebGLRenderingContext.TRIANGLES;
 
   cube.z = -10;
 
   world.add(cube);
 
-  cube.color.hex = '#333';
+  cube.color.hex = '#A22';
 
   var light = new MoGl.DirectionalLight();
   light.direction = [1.1, 0.8, 1.2];
@@ -43,12 +43,44 @@
   }
 
   document.body.appendChild(renderer.canvas);
-  window.onmousewheel = function (e) {
+
+  renderer.canvas.onmousewheel = function (e) {
+    if (renderer.camera.zoom + e.wheelDeltaY / 240 < 1) {
+      return;
+    }
     renderer.camera.zoom += e.wheelDeltaY / 240;
     renderer.camera.updatePerspective();
   };
 
-  redraw();
+  var isDragging, lastPoint = {};
+
+  renderer.canvas.onmousedown = function (e) {
+    e.preventDefault();
+
+    lastPoint.x = e.clientX;
+    lastPoint.y = e.clientY;
+    isDragging = true;
+  };
+
+  renderer.canvas.onmouseup = function (e) {
+    e.preventDefault();
+
+    isDragging = false;
+  };
+
+  renderer.canvas.onmousemove = function (e) {
+    if (isDragging) {
+      var delta = {x: e.clientX - lastPoint.x, y: e.clientY - lastPoint.y};
+      lastPoint.x = e.clientX;
+      lastPoint.y = e.clientY;
+
+      cube.rotateX += delta.y / 200;
+      cube.rotateY += delta.x / 200;
+    }
+
+  };
+
+  requestAnimationFrame(redraw);
 </script>
 
 </body>

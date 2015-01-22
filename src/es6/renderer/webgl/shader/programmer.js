@@ -1,3 +1,8 @@
+/**
+ * This class is used to create and compile a glsl program.
+ *
+ * @author Mohamad Mohebifar
+ */
 export default
 class ShaderProgrammer {
 

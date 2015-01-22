@@ -16,9 +16,9 @@ class World {
 
   remove(object) {
     if(object instanceof DirectionalLight) {
-      this.lights.remove(object);
+      this.lights.splice(this.lights.indexOf(object), 1);
     } else {
-      this.children.remove(object);
+      this.children.splice(this.children.indexOf(object), 1);
     }
   }
 
