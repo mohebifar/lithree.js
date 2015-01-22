@@ -42,6 +42,15 @@ grunt.initConfig({
         'dist/lithree.min.js': ['dist/lithree.js']
       }
     }
+  },
+  watch: {
+    scripts: {
+      files: ['src/**/*.js'],
+      tasks: ['default'],
+      options: {
+        spawn: false
+      }
+    }
   }
 });
 
