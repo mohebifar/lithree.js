@@ -77,7 +77,11 @@ class Vector3 extends Array {
   }
 
   cross(vector) {
-      return new Vector3(this.y * vector.z - this.z * vector.y, this.z * vector.x - this.x * vector.z, this.x * vector.y - this.y * vector.x);
+    return new Vector3(this.y * vector.z - this.z * vector.y, this.z * vector.x - this.x * vector.z, this.x * vector.y - this.y * vector.x);
+  }
+
+  toArray() {
+    return [this.x, this.y, this.z];
   }
 
   clone() {

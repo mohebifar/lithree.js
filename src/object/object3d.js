@@ -24,20 +24,18 @@ class Object3D {
     this.color = new Color();
 
     this.shader = false;
-
-    this._mvMatrix = mat4.create();
   }
 
   getMatrix(camera) {
-    var mvMatrix = mat4.create();
+    var mvMatrix = new Matrix4();
 
-    mat4.lookAt(mvMatrix, camera.position, camera.lookAt, camera.up);
+    mvMatrix.lookAt(camera.position, camera.lookAt, camera.up);
 
-    mat4.translate(mvMatrix, mvMatrix, this.position);
+    mvMatrix.translate(this.position);
 
-    mat4.rotateX(mvMatrix, mvMatrix, this.rotation[0]);
-    mat4.rotateY(mvMatrix, mvMatrix, this.rotation[1]);
-    mat4.rotateZ(mvMatrix, mvMatrix, this.rotation[2]);
+    mvMatrix.rotateX(this.rotation[0]);
+    mvMatrix.rotateY(this.rotation[1]);
+    mvMatrix.rotateZ(this.rotation[2]);
 
     return mvMatrix;
   }

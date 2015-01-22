@@ -72,15 +72,15 @@ class ShaderProgrammer {
     var mvMatrix = obj.getMatrix(this.renderer.camera);
 
     // Set Matrix Uniform
-    this.uniformValue('uPMatrix', this.renderer.camera.matrix);
-    this.uniformValue('uMVMatrix', obj.getMatrix(this.renderer.camera));
+    this.uniformValue('uPMatrix', this.renderer.camera.matrix.toArray());
+    this.uniformValue('uMVMatrix', obj.getMatrix(this.renderer.camera).toArray());
     this.uniformValue('uvColor', obj.color.toArray());
 
     for(var i in this.renderer.world.lights) {
       var light = this.renderer.world.lights[i];
       var _i = light.index;
 
-      this.uniformValue('uLightingDirection' + _i, light.direction);
+      this.uniformValue('uLightingDirection' + _i, light.direction.toArray());
       this.uniformValue('uDirectionalColor' + _i, light.color.array);
     }
 

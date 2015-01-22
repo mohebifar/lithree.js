@@ -5,7 +5,7 @@ class Camera {
     this.aspect = aspect;
     this.near = near;
     this.far = far;
-    this.matrix = mat4.create();
+    this.matrix = new Matrix4();
     this.lookAt = [0, 0, 0];
     this.position = [0, 0, 5];
     this.up = [0, 1, 0];
@@ -27,6 +27,6 @@ class Camera {
 
   updatePerspective() {
     var fovy = 2 * Math.atan(Math.tan(this.fovy * 0.5) / this._zoom);
-    mat4.perspective(this.matrix, fovy, this.aspect, this.near, this.far);
+    this.matrix.perspective(fovy, this.aspect, this.near, this.far);
   }
 }
