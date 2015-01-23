@@ -210,7 +210,7 @@ class ShaderProgrammer {
 
     if (!success) {
       // something went wrong with the link
-      throw ("program filed to link:" + gl.getProgramInfoLog(program));
+      throw ("Program failed to link:" + gl.getProgramInfoLog(program));
     }
 
     this.program = program;
