@@ -1,37 +1,13 @@
 export default
-class Vector3 extends Array {
+class Vector3 {
   constructor(x = 0, y = 0, z = 0) {
-    this.push(x);
-    this.push(y);
-    this.push(z);
+    this.x = x;
+    this.y = y;
+    this.z = z;
   }
 
   clone() {
     return new Vector3(this.x, this.y, this.z);
-  }
-
-  set x(x) {
-    this[0] = x;
-  }
-
-  set y(y) {
-    this[1] = y;
-  }
-
-  set z(z) {
-    this[2] = z;
-  }
-
-  get x() {
-    return this[0];
-  }
-
-  get y() {
-    return this[1];
-  }
-
-  get z() {
-    return this[2];
   }
 
   set(x, y, z) {

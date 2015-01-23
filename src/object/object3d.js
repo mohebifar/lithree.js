@@ -33,9 +33,9 @@ class Object3D {
 
     mvMatrix.translate(this.position);
 
-    mvMatrix.rotateX(this.rotation[0]);
-    mvMatrix.rotateY(this.rotation[1]);
-    mvMatrix.rotateZ(this.rotation[2]);
+    mvMatrix.rotateX(this.rotation.x);
+    mvMatrix.rotateY(this.rotation.y);
+    mvMatrix.rotateZ(this.rotation.z);
 
     return mvMatrix;
   }

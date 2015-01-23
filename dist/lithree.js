@@ -578,6 +578,7 @@ var Matrix4 = (function (Array) {
         var b21 = a21 * a10 - a11 * a20;
 
         var d = a00 * b01 + a01 * b11 + a02 * b21;
+
         if (!d) {
           return null;
         }
@@ -649,32 +650,15 @@ var _prototypeProperties = function (child, staticProps, instanceProps) {
   if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
 };
 
-var _inherits = function (subClass, superClass) {
-  if (typeof superClass !== "function" && superClass !== null) {
-    throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
-  }
-  subClass.prototype = Object.create(superClass && superClass.prototype, {
-    constructor: {
-      value: subClass,
-      enumerable: false,
-      writable: true,
-      configurable: true
-    }
-  });
-  if (superClass) subClass.__proto__ = superClass;
-};
-
-var Vector3 = (function (Array) {
+var Vector3 = (function () {
   function Vector3() {
     var x = arguments[0] === undefined ? 0 : arguments[0];
     var y = arguments[1] === undefined ? 0 : arguments[1];
     var z = arguments[2] === undefined ? 0 : arguments[2];
-    this.push(x);
-    this.push(y);
-    this.push(z);
+    this.x = x;
+    this.y = y;
+    this.z = z;
   }
-
-  _inherits(Vector3, Array);
 
   _prototypeProperties(Vector3, null, {
     clone: {
@@ -682,36 +666,6 @@ var Vector3 = (function (Array) {
         return new Vector3(this.x, this.y, this.z);
       },
       writable: true,
-      enumerable: true,
-      configurable: true
-    },
-    x: {
-      set: function (x) {
-        this[0] = x;
-      },
-      get: function () {
-        return this[0];
-      },
-      enumerable: true,
-      configurable: true
-    },
-    y: {
-      set: function (y) {
-        this[1] = y;
-      },
-      get: function () {
-        return this[1];
-      },
-      enumerable: true,
-      configurable: true
-    },
-    z: {
-      set: function (z) {
-        this[2] = z;
-      },
-      get: function () {
-        return this[2];
-      },
       enumerable: true,
       configurable: true
     },
@@ -840,7 +794,7 @@ var Vector3 = (function (Array) {
   });
 
   return Vector3;
-})(Array);"use strict";
+})();"use strict";
 
 function CubeFactory() {
   var cube = new Object3D();
@@ -895,6 +849,136 @@ function CubeFactory() {
   cube.drawingMode = Common.drawingMode.TRIANGLES;
 
   return cube;
+}"use strict";
+
+function CylinderFactory() {
+  var _this = this;
+  var radiusTop = arguments[0] === undefined ? 20 : arguments[0];
+  var radiusBottom = arguments[1] === undefined ? 20 : arguments[1];
+  var height = arguments[2] === undefined ? 100 : arguments[2];
+  var radialSegments = arguments[3] === undefined ? 8 : arguments[3];
+  var heightSegments = arguments[4] === undefined ? 1 : arguments[4];
+  var openEnded = arguments[5] === undefined ? false : arguments[5];
+  var thetaStart = arguments[6] === undefined ? 0 : arguments[6];
+  var thetaLength = arguments[7] === undefined ? 2 * Math.PI : arguments[7];
+  return (function () {
+    var heightHalf = height / 2;
+
+    var x,
+        y,
+        vertices = [],
+        uvs = [];
+    var cylinder = new Object3D();
+
+    for (y = 0; y <= heightSegments; y++) {
+      var verticesRow = [];
+      var uvsRow = [];
+
+      var v = y / heightSegments;
+      var radius = v * (radiusBottom - radiusTop) + radiusTop;
+
+      for (x = 0; x <= radialSegments; x++) {
+        var u = x / radialSegments;
+
+        var vertex = [radius * Math.sin(u * thetaLength + thetaStart), -v * height + heightHalf, radius * Math.cos(u * thetaLength + thetaStart)];
+
+        cylinder.vertices.push(vertex);
+
+        verticesRow.push(_this.vertices.length - 1);
+        uvsRow.push([u, 1 - v]);
+      }
+
+      vertices.push(verticesRow);
+      uvs.push(uvsRow);
+    }
+
+    var tanTheta = (radiusBottom - radiusTop) / height;
+    var na, nb;
+
+    for (x = 0; x < radialSegments; x++) {
+      if (radiusTop !== 0) {
+        na = _this.vertices[vertices[0][x]].clone();
+        nb = _this.vertices[vertices[0][x + 1]].clone();
+      } else {
+        na = _this.vertices[vertices[1][x]].clone();
+        nb = _this.vertices[vertices[1][x + 1]].clone();
+      }
+
+      na.setY(Math.sqrt(na.x * na.x + na.z * na.z) * tanTheta).normalize();
+      nb.setY(Math.sqrt(nb.x * nb.x + nb.z * nb.z) * tanTheta).normalize();
+
+      for (y = 0; y < heightSegments; y++) {
+        var v1 = vertices[y][x];
+        var v2 = vertices[y + 1][x];
+        var v3 = vertices[y + 1][x + 1];
+        var v4 = vertices[y][x + 1];
+
+        var n1 = na.clone();
+        var n2 = na.clone();
+        var n3 = nb.clone();
+        var n4 = nb.clone();
+
+        var uv1 = uvs[y][x].clone();
+        var uv2 = uvs[y + 1][x].clone();
+        var uv3 = uvs[y + 1][x + 1].clone();
+        var uv4 = uvs[y][x + 1].clone();
+
+        _this.faces.push(new THREE.Face3(v1, v2, v4, [n1, n2, n4]));
+        _this.faceVertexUvs[0].push([uv1, uv2, uv4]);
+
+        _this.faces.push(new THREE.Face3(v2, v3, v4, [n2.clone(), n3, n4.clone()]));
+        _this.faceVertexUvs[0].push([uv2.clone(), uv3, uv4.clone()]);
+      }
+    }
+
+    // top cap
+
+    if (openEnded === false && radiusTop > 0) {
+      _this.vertices.push(new THREE.Vector3(0, heightHalf, 0));
+
+      for (x = 0; x < radialSegments; x++) {
+        var v1 = vertices[0][x];
+        var v2 = vertices[0][x + 1];
+        var v3 = _this.vertices.length - 1;
+
+        var n1 = new THREE.Vector3(0, 1, 0);
+        var n2 = new THREE.Vector3(0, 1, 0);
+        var n3 = new THREE.Vector3(0, 1, 0);
+
+        var uv1 = uvs[0][x].clone();
+        var uv2 = uvs[0][x + 1].clone();
+        var uv3 = new THREE.Vector2(uv2.x, 0);
+
+        _this.faces.push(new THREE.Face3(v1, v2, v3, [n1, n2, n3]));
+        _this.faceVertexUvs[0].push([uv1, uv2, uv3]);
+      }
+    }
+
+    // bottom cap
+
+    if (openEnded === false && radiusBottom > 0) {
+      _this.vertices.push(new THREE.Vector3(0, -heightHalf, 0));
+
+      for (x = 0; x < radialSegments; x++) {
+        var v1 = vertices[heightSegments][x + 1];
+        var v2 = vertices[heightSegments][x];
+        var v3 = _this.vertices.length - 1;
+
+        var n1 = new THREE.Vector3(0, -1, 0);
+        var n2 = new THREE.Vector3(0, -1, 0);
+        var n3 = new THREE.Vector3(0, -1, 0);
+
+        var uv1 = uvs[heightSegments][x + 1].clone();
+        var uv2 = uvs[heightSegments][x].clone();
+        var uv3 = new THREE.Vector2(uv2.x, 1);
+
+        _this.faces.push(new THREE.Face3(v1, v2, v3, [n1, n2, n3]));
+        _this.faceVertexUvs[0].push([uv1, uv2, uv3]);
+      }
+    }
+
+    _this.computeFaceNormals();
+  })();
 }"use strict";
 
 function SphereFactory() {
@@ -999,9 +1083,9 @@ var Object3D = (function () {
 
         mvMatrix.translate(this.position);
 
-        mvMatrix.rotateX(this.rotation[0]);
-        mvMatrix.rotateY(this.rotation[1]);
-        mvMatrix.rotateZ(this.rotation[2]);
+        mvMatrix.rotateX(this.rotation.x);
+        mvMatrix.rotateY(this.rotation.y);
+        mvMatrix.rotateZ(this.rotation.z);
 
         return mvMatrix;
       },
@@ -1527,3 +1611,4 @@ root.LiThree = {
 };
 })
 (this);
+//# sourceMappingURL=lithree.js.map

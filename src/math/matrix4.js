@@ -216,6 +216,7 @@ class Matrix4 extends Array {
     var b21 = a21 * a10 - a11 * a20;
 
     var d = a00 * b01 + a01 * b11 + a02 * b21;
+
     if (!d) {
       return null;
     }
