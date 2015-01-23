@@ -1514,16 +1514,16 @@ var ShaderProgrammer = (function () {
 var ShaderChunks = {
   vertex: {
     pars: {
-      "default": "attribute vec3 aVertexNormal;\n      attribute vec3 aVertexPosition;\n      uniform mat4 uMVMatrix;\n      uniform mat4 uPMatrix; uniform mat3 uNMatrix;",
+      "default": "attribute vec3 aVertexNormal; attribute vec3 aVertexPosition; uniform mat4 uMVMatrix; uniform mat4 uPMatrix; uniform mat3 uNMatrix;",
       directionalLight: function (index) {
-        return "varying vec3 vLightWeighting;\n        uniform vec3 uLightingDirection" + index + ";\n        uniform vec3 uDirectionalColor" + index + ";";
+        return "varying vec3 vLightWeighting; uniform vec3 uLightingDirection" + index + "; uniform vec3 uDirectionalColor" + index + ";";
       }
 
     },
     main: {
       "default": "gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);",
       directionalLight: function (index) {
-        return "vec3 transformedNormal = uNMatrix * aVertexNormal;\n      float directionalLightWeighting" + index + " = max(dot(transformedNormal, uLightingDirection" + index + "), 0.0);\n      vLightWeighting = uDirectionalColor" + index + " * directionalLightWeighting" + index + ";";
+        return "vec3 transformedNormal = uNMatrix * aVertexNormal; float directionalLightWeighting" + index + " = max(dot(transformedNormal, uLightingDirection" + index + "), 0.0); vLightWeighting = uDirectionalColor" + index + " * directionalLightWeighting" + index + ";";
       }
 
     }
