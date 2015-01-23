@@ -835,26 +835,27 @@ function CircleFactory() {
 }"use strict";
 
 function CubeFactory() {
+  var size = arguments[0] === undefined ? 1 : arguments[0];
   var cube = new Object3D();
 
   cube.vertices = [
   // Front face
-  -1, -1, 1, 1, -1, 1, 1, 1, 1, -1, 1, 1,
+  -size, -size, size, size, -size, size, size, size, size, -size, size, size,
 
   // Back face
-  -1, -1, -1, -1, 1, -1, 1, 1, -1, 1, -1, -1,
+  -size, -size, -size, -size, size, -size, size, size, -size, size, -size, -size,
 
   // Top face
-  -1, 1, -1, -1, 1, 1, 1, 1, 1, 1, 1, -1,
+  -size, size, -size, -size, size, size, size, size, size, size, size, -size,
 
   // Bottom face
-  -1, -1, -1, 1, -1, -1, 1, -1, 1, -1, -1, 1,
+  -size, -size, -size, size, -size, -size, size, -size, size, -size, -size, size,
 
   // Right face
-  1, -1, -1, 1, 1, -1, 1, 1, 1, 1, -1, 1,
+  size, -size, -size, size, size, -size, size, size, size, size, -size, size,
 
   // Left face
-  -1, -1, -1, -1, -1, 1, -1, 1, 1, -1, 1, -1];
+  -size, -size, -size, -size, -size, size, -size, size, size, -size, size, -size];
 
   cube.vertexIndex = [0, 1, 2, 0, 2, 3, // Front face
   4, 5, 6, 4, 6, 7, // Back face

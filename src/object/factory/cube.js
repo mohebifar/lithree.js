@@ -1,43 +1,43 @@
 export default
-  function CubeFactory() {
+  function CubeFactory(size = 1) {
     var cube = new Object3D();
 
     cube.vertices = [
       // Front face
-      -1.0, -1.0, 1.0,
-      1.0, -1.0, 1.0,
-      1.0, 1.0, 1.0,
-      -1.0, 1.0, 1.0,
+      -size, -size, size,
+      size, -size, size,
+      size, size, size,
+      -size, size, size,
 
       // Back face
-      -1.0, -1.0, -1.0,
-      -1.0, 1.0, -1.0,
-      1.0, 1.0, -1.0,
-      1.0, -1.0, -1.0,
+      -size, -size, -size,
+      -size, size, -size,
+      size, size, -size,
+      size, -size, -size,
 
       // Top face
-      -1.0, 1.0, -1.0,
-      -1.0, 1.0, 1.0,
-      1.0, 1.0, 1.0,
-      1.0, 1.0, -1.0,
+      -size, size, -size,
+      -size, size, size,
+      size, size, size,
+      size, size, -size,
 
       // Bottom face
-      -1.0, -1.0, -1.0,
-      1.0, -1.0, -1.0,
-      1.0, -1.0, 1.0,
-      -1.0, -1.0, 1.0,
+      -size, -size, -size,
+      size, -size, -size,
+      size, -size, size,
+      -size, -size, size,
 
       // Right face
-      1.0, -1.0, -1.0,
-      1.0, 1.0, -1.0,
-      1.0, 1.0, 1.0,
-      1.0, -1.0, 1.0,
+      size, -size, -size,
+      size, size, -size,
+      size, size, size,
+      size, -size, size,
 
       // Left face
-      -1.0, -1.0, -1.0,
-      -1.0, -1.0, 1.0,
-      -1.0, 1.0, 1.0,
-      -1.0, 1.0, -1.0
+      -size, -size, -size,
+      -size, -size, size,
+      -size, size, size,
+      -size, size, -size
     ];
 
     cube.vertexIndex = [
@@ -51,40 +51,40 @@ export default
 
     cube.vertexNormals = [
       // Front face
-      0.0,  0.0,  1.0,
-      0.0,  0.0,  1.0,
-      0.0,  0.0,  1.0,
-      0.0,  0.0,  1.0,
+      0.0, 0.0, 1.0,
+      0.0, 0.0, 1.0,
+      0.0, 0.0, 1.0,
+      0.0, 0.0, 1.0,
 
       // Back face
-      0.0,  0.0, -1.0,
-      0.0,  0.0, -1.0,
-      0.0,  0.0, -1.0,
-      0.0,  0.0, -1.0,
+      0.0, 0.0, -1.0,
+      0.0, 0.0, -1.0,
+      0.0, 0.0, -1.0,
+      0.0, 0.0, -1.0,
 
       // Top face
-      0.0,  1.0,  0.0,
-      0.0,  1.0,  0.0,
-      0.0,  1.0,  0.0,
-      0.0,  1.0,  0.0,
+      0.0, 1.0, 0.0,
+      0.0, 1.0, 0.0,
+      0.0, 1.0, 0.0,
+      0.0, 1.0, 0.0,
 
       // Bottom face
-      0.0, -1.0,  0.0,
-      0.0, -1.0,  0.0,
-      0.0, -1.0,  0.0,
-      0.0, -1.0,  0.0,
+      0.0, -1.0, 0.0,
+      0.0, -1.0, 0.0,
+      0.0, -1.0, 0.0,
+      0.0, -1.0, 0.0,
 
       // Right face
-      1.0,  0.0,  0.0,
-      1.0,  0.0,  0.0,
-      1.0,  0.0,  0.0,
-      1.0,  0.0,  0.0,
+      1.0, 0.0, 0.0,
+      1.0, 0.0, 0.0,
+      1.0, 0.0, 0.0,
+      1.0, 0.0, 0.0,
 
       // Left face
-      -1.0,  0.0,  0.0,
-      -1.0,  0.0,  0.0,
-      -1.0,  0.0,  0.0,
-      -1.0,  0.0,  0.0
+      -1.0, 0.0, 0.0,
+      -1.0, 0.0, 0.0,
+      -1.0, 0.0, 0.0,
+      -1.0, 0.0, 0.0
     ];
 
     cube.darwingFunction = Common.drawingFunctions.ELEMENTS;
