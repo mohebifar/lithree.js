@@ -20,6 +20,7 @@ grunt.initConfig({
   },
   concat: {
     options: {
+      sourceMap: true,
       separator: ''
     },
     dist: {
@@ -43,6 +44,7 @@ grunt.initConfig({
       files: ['src/**/*.js'],
       tasks: ['default'],
       options: {
+        livereload: true,
         spawn: false
       }
     }
