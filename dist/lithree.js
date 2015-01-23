@@ -144,16 +144,23 @@ if (!WebGLRenderingContext) {
   Common = {
     support: true,
     drawingMode: {
-      TRIANGLES: GL.TRIANGLES,
+      POINTS: GL.POINTS,
+      LINES: GL.LINES,
       LINE_LOOP: GL.LINE_LOOP,
       LINE_STRIP: GL.LINE_STRIP,
-      TRIANGLE_FAN: GL.TRIANGLE_FAN
+      TRIANGLES: GL.TRIANGLES,
+      TRIANGLE_FAN: GL.TRIANGLE_FAN,
+      TRIANGLE_STRIP: GL.TRIANGLE_STRIP
     },
     drawingFunctions: {
       ARRAYS: 1,
       ELEMENTS: 0
     }
   };
+}"use strict";
+
+function computeNormal(vertices) {
+  var v, vl, f, fl, face, vertices;
 }"use strict";
 
 var _prototypeProperties = function (child, staticProps, instanceProps) {
@@ -796,6 +803,37 @@ var Vector3 = (function () {
   return Vector3;
 })();"use strict";
 
+function CircleFactory() {
+  var radius = arguments[0] === undefined ? 1 : arguments[0];
+  var steps = arguments[1] === undefined ? 20 : arguments[1];
+  var circle = new Object3D();
+
+  circle.vertices.push(0, 0, 0);
+
+  circle.vertexIndex = [];
+  circle.vertexNormals = [];
+
+  var step = Math.PI / (steps - 1);
+  steps *= 2;
+
+  for (var a = 0, i = 1; i < steps; a += step, i++) {
+    circle.vertices.push(Math.cos(a) * radius, Math.sin(a) * radius, 0);
+  }
+
+  for (var i = 0; i < circle.vertices.length; i++) {
+    circle.vertexNormals.push(0, 0, 1);
+  }
+
+  for (var i = 0; i < circle.vertices.length / 3; i++) {
+    circle.vertexIndex.push(i);
+  }
+
+  circle.darwingFunction = Common.drawingFunctions.ELEMENTS;
+  circle.drawingMode = Common.drawingMode.TRIANGLE_FAN;
+
+  return circle;
+}"use strict";
+
 function CubeFactory() {
   var cube = new Object3D();
 
@@ -852,133 +890,43 @@ function CubeFactory() {
 }"use strict";
 
 function CylinderFactory() {
-  var _this = this;
-  var radiusTop = arguments[0] === undefined ? 20 : arguments[0];
-  var radiusBottom = arguments[1] === undefined ? 20 : arguments[1];
-  var height = arguments[2] === undefined ? 100 : arguments[2];
-  var radialSegments = arguments[3] === undefined ? 8 : arguments[3];
-  var heightSegments = arguments[4] === undefined ? 1 : arguments[4];
-  var openEnded = arguments[5] === undefined ? false : arguments[5];
-  var thetaStart = arguments[6] === undefined ? 0 : arguments[6];
-  var thetaLength = arguments[7] === undefined ? 2 * Math.PI : arguments[7];
-  return (function () {
-    var heightHalf = height / 2;
+  var height = arguments[0] === undefined ? 2 : arguments[0];
+  var radiusTop = arguments[1] === undefined ? 1 : arguments[1];
+  var radiusBottom = arguments[2] === undefined ? 1 : arguments[2];
+  var steps = arguments[3] === undefined ? 20 : arguments[3];
+  var cylinder = new Object3D();
 
-    var x,
-        y,
-        vertices = [],
-        uvs = [];
-    var cylinder = new Object3D();
+  cylinder.vertexIndex = [];
+  cylinder.vertexNormals = [];
 
-    for (y = 0; y <= heightSegments; y++) {
-      var verticesRow = [];
-      var uvsRow = [];
+  var step = Math.PI / (steps - 1);
 
-      var v = y / heightSegments;
-      var radius = v * (radiusBottom - radiusTop) + radiusTop;
+  steps *= 2;
 
-      for (x = 0; x <= radialSegments; x++) {
-        var u = x / radialSegments;
+  var heightTop = height / 2,
+      heightBottom = height / -2;
 
-        var vertex = [radius * Math.sin(u * thetaLength + thetaStart), -v * height + heightHalf, radius * Math.cos(u * thetaLength + thetaStart)];
+  for (var a = 0, i = 1; i <= steps; a += step, i++) {
+    var positionTop = new Vector3(Math.cos(a) * radiusTop, Math.sin(a) * radiusTop, heightTop);
+    var positionBottom = new Vector3(Math.cos(a) * radiusBottom, Math.sin(a) * radiusBottom, heightBottom);
 
-        cylinder.vertices.push(vertex);
+    var crossed = positionTop.cross(positionBottom);
 
-        verticesRow.push(_this.vertices.length - 1);
-        uvsRow.push([u, 1 - v]);
-      }
+    cylinder.vertexNormals.push(crossed.x, crossed.y, crossed.z);
+    cylinder.vertexNormals.push(crossed.x, crossed.y, crossed.z);
 
-      vertices.push(verticesRow);
-      uvs.push(uvsRow);
-    }
+    cylinder.vertices.push(positionTop.x, positionTop.y, positionTop.z);
+    cylinder.vertices.push(positionBottom.x, positionBottom.y, positionBottom.z);
+  }
 
-    var tanTheta = (radiusBottom - radiusTop) / height;
-    var na, nb;
+  for (var i = 0; i < cylinder.vertices.length / 3; i++) {
+    cylinder.vertexIndex.push(i);
+  }
 
-    for (x = 0; x < radialSegments; x++) {
-      if (radiusTop !== 0) {
-        na = _this.vertices[vertices[0][x]].clone();
-        nb = _this.vertices[vertices[0][x + 1]].clone();
-      } else {
-        na = _this.vertices[vertices[1][x]].clone();
-        nb = _this.vertices[vertices[1][x + 1]].clone();
-      }
+  cylinder.darwingFunction = Common.drawingFunctions.ELEMENTS;
+  cylinder.drawingMode = Common.drawingMode.TRIANGLE_STRIP;
 
-      na.setY(Math.sqrt(na.x * na.x + na.z * na.z) * tanTheta).normalize();
-      nb.setY(Math.sqrt(nb.x * nb.x + nb.z * nb.z) * tanTheta).normalize();
-
-      for (y = 0; y < heightSegments; y++) {
-        var v1 = vertices[y][x];
-        var v2 = vertices[y + 1][x];
-        var v3 = vertices[y + 1][x + 1];
-        var v4 = vertices[y][x + 1];
-
-        var n1 = na.clone();
-        var n2 = na.clone();
-        var n3 = nb.clone();
-        var n4 = nb.clone();
-
-        var uv1 = uvs[y][x].clone();
-        var uv2 = uvs[y + 1][x].clone();
-        var uv3 = uvs[y + 1][x + 1].clone();
-        var uv4 = uvs[y][x + 1].clone();
-
-        _this.faces.push(new THREE.Face3(v1, v2, v4, [n1, n2, n4]));
-        _this.faceVertexUvs[0].push([uv1, uv2, uv4]);
-
-        _this.faces.push(new THREE.Face3(v2, v3, v4, [n2.clone(), n3, n4.clone()]));
-        _this.faceVertexUvs[0].push([uv2.clone(), uv3, uv4.clone()]);
-      }
-    }
-
-    // top cap
-
-    if (openEnded === false && radiusTop > 0) {
-      _this.vertices.push(new THREE.Vector3(0, heightHalf, 0));
-
-      for (x = 0; x < radialSegments; x++) {
-        var v1 = vertices[0][x];
-        var v2 = vertices[0][x + 1];
-        var v3 = _this.vertices.length - 1;
-
-        var n1 = new THREE.Vector3(0, 1, 0);
-        var n2 = new THREE.Vector3(0, 1, 0);
-        var n3 = new THREE.Vector3(0, 1, 0);
-
-        var uv1 = uvs[0][x].clone();
-        var uv2 = uvs[0][x + 1].clone();
-        var uv3 = new THREE.Vector2(uv2.x, 0);
-
-        _this.faces.push(new THREE.Face3(v1, v2, v3, [n1, n2, n3]));
-        _this.faceVertexUvs[0].push([uv1, uv2, uv3]);
-      }
-    }
-
-    // bottom cap
-
-    if (openEnded === false && radiusBottom > 0) {
-      _this.vertices.push(new THREE.Vector3(0, -heightHalf, 0));
-
-      for (x = 0; x < radialSegments; x++) {
-        var v1 = vertices[heightSegments][x + 1];
-        var v2 = vertices[heightSegments][x];
-        var v3 = _this.vertices.length - 1;
-
-        var n1 = new THREE.Vector3(0, -1, 0);
-        var n2 = new THREE.Vector3(0, -1, 0);
-        var n3 = new THREE.Vector3(0, -1, 0);
-
-        var uv1 = uvs[heightSegments][x + 1].clone();
-        var uv2 = uvs[heightSegments][x].clone();
-        var uv3 = new THREE.Vector2(uv2.x, 1);
-
-        _this.faces.push(new THREE.Face3(v1, v2, v3, [n1, n2, n3]));
-        _this.faceVertexUvs[0].push([uv1, uv2, uv3]);
-      }
-    }
-
-    _this.computeFaceNormals();
-  })();
+  return cylinder;
 }"use strict";
 
 function SphereFactory() {
@@ -1547,7 +1495,7 @@ var ShaderProgrammer = (function () {
 
         if (!success) {
           // something went wrong with the link
-          throw "program filed to link:" + gl.getProgramInfoLog(program);
+          throw "Program failed to link:" + gl.getProgramInfoLog(program);
         }
 
         this.program = program;
@@ -1605,6 +1553,8 @@ root.LiThree = {
   },
   DirectionalLight: DirectionalLight,
   ObjectFactory: {
+    Circle: CircleFactory,
+    Cylinder: CylinderFactory,
     Cube: CubeFactory,
     Sphere: SphereFactory
   }

@@ -12,6 +12,8 @@ root.LiThree = {
   },
   DirectionalLight: DirectionalLight,
   ObjectFactory: {
+    Circle: CircleFactory,
+    Cylinder: CylinderFactory,
     Cube: CubeFactory,
     Sphere: SphereFactory
   }
