@@ -8,10 +8,13 @@ if (!WebGLRenderingContext) {
   Common = {
     support: true,
     drawingMode: {
-      TRIANGLES: GL.TRIANGLES,
+      POINTS: GL.POINTS,
+      LINES: GL.LINES,
       LINE_LOOP: GL.LINE_LOOP,
       LINE_STRIP: GL.LINE_STRIP,
-      TRIANGLE_FAN: GL.TRIANGLE_FAN
+      TRIANGLES: GL.TRIANGLES,
+      TRIANGLE_FAN: GL.TRIANGLE_FAN,
+      TRIANGLE_STRIP: GL.TRIANGLE_STRIP
     },
     drawingFunctions: {
       ARRAYS: 1,
