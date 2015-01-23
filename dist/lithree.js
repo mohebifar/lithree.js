@@ -62,7 +62,7 @@ var Color = (function () {
     var g = arguments[1] === undefined ? 1 : arguments[1];
     var b = arguments[2] === undefined ? 1 : arguments[2];
     var alpha = arguments[3] === undefined ? 1 : arguments[3];
-    this.array = [r, g, b];
+    this.array = [r, g, b, alpha];
   }
 
   _prototypeProperties(Color, null, {
@@ -123,7 +123,8 @@ var Color = (function () {
     },
     toArray: {
       value: function toArray() {
-        return this.array;
+        var size = arguments[0] === undefined ? 3 : arguments[0];
+        return this.array.slice(0, size);
       },
       writable: true,
       enumerable: true,
@@ -1144,7 +1145,7 @@ var WebGLRenderer = (function (Renderer) {
         this.gl.viewportHeight = this.canvas.height;
 
         if (this.color !== null) {
-          this.gl.clearColor.apply(this.gl, this.color.array);
+          this.gl.clearColor(this.color[0], this.color[1], this.color[2], this.color[3]);
         }
 
         this.gl.enable(this.gl.DEPTH_TEST);
@@ -1333,7 +1334,7 @@ var ShaderProgrammer = (function () {
           var _i = light.index;
 
           this.uniformValue("uLightingDirection" + _i, light.direction.toArray());
-          this.uniformValue("uDirectionalColor" + _i, light.color.array);
+          this.uniformValue("uDirectionalColor" + _i, light.color.toArray());
         }
 
         var normalMatrix = mvMatrix.toInverseMat3().transpose();

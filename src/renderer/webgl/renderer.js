@@ -45,7 +45,7 @@ class WebGLRenderer extends Renderer {
     this.gl.viewportHeight = this.canvas.height;
 
     if(this.color !== null) {
-      this.gl.clearColor.apply(this.gl, this.color.array);
+      this.gl.clearColor(this.color[0], this.color[1], this.color[2], this.color[3]);
     }
 
     this.gl.enable(this.gl.DEPTH_TEST);

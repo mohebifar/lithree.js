@@ -81,7 +81,7 @@ class ShaderProgrammer {
       var _i = light.index;
 
       this.uniformValue('uLightingDirection' + _i, light.direction.toArray());
-      this.uniformValue('uDirectionalColor' + _i, light.color.array);
+      this.uniformValue('uDirectionalColor' + _i, light.color.toArray());
     }
 
     var normalMatrix = mvMatrix.toInverseMat3().transpose();

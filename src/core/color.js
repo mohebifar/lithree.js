@@ -2,7 +2,7 @@ export default
 class Color {
 
   constructor(r = 1, g = 1, b = 1, alpha = 1) {
-    this.array = [r, g, b];
+    this.array = [r, g, b, alpha];
   }
 
   set hex(hex) {
@@ -46,7 +46,7 @@ class Color {
     return this;
   }
 
-  toArray() {
-    return this.array;
+  toArray(size = 3) {
+    return this.array.slice(0, size);
   }
 }
