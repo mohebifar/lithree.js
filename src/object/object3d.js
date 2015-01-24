@@ -9,6 +9,10 @@ export default
 class Object3D {
 
   constructor() {
+    this.color = new Color();
+
+    this.type = 'object';
+
     this.scale = new Vector3();
     this.position = new Vector3();
     this.rotation = new Vector3();
@@ -23,12 +27,8 @@ class Object3D {
 
     this.buffers = {};
 
-    this.drawingMode = Common.drawingMode.TRIANGLES;
-
-    this.darwingFunction = 0;
-    this.color = new Color();
-
-    this.shader = false;
+    this.drawingMode = Common.drawingMode.LINE_STRIP;
+    this.darwingFunction = Common.drawingFunctions.ARRAYS;
   }
 
   getMatrix(camera) {

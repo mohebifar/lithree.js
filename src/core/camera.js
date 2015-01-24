@@ -1,4 +1,5 @@
 import Matrix4 from '../math/matrix4.js';
+import Vector3 from '../math/vector3.js';
 
 export default
 class Camera {
@@ -8,9 +9,9 @@ class Camera {
     this.near = near;
     this.far = far;
     this.matrix = new Matrix4();
-    this.lookAt = [0, 0, 0];
-    this.position = [0, 0, 5];
-    this.up = [0, 1, 0];
+    this.lookAt = new Vector3();
+    this.position = new Vector3();
+    this.up = new Vector3();
     this._zoom = 1;
   }
 

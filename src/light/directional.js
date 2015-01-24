@@ -1,5 +1,5 @@
 import Vector3 from '../math/vector3.js';
-import BaseLight from 'light.js';
+import BaseLight from 'baselight.js';
 
 export default
 class DirectionalLight extends BaseLight {

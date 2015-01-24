@@ -1,16 +1,28 @@
 import Vector3 from 'vector3.js';
 import Matrix3 from 'matrix3.js';
 
-var GLMAT_EPSILON = 0.00001;
+var EPSILON = 0.00001;
 
 export default
 class Matrix4 extends Array {
+
+  /**
+   * Matrix4 Constructor
+   *
+   * @method constructor
+   */
   constructor() {
     for (var i = 16; i--;) {
       this.push(0);
     }
   }
 
+  /**
+   * Makes this matrix an identity matrix
+   *
+   * @method identity
+   * @returns {Matrix4}
+   */
   identity() {
     for (var i = 16; i--;) {
       this[i] = i % 5 === 0 ? 1 : 0;
@@ -19,6 +31,12 @@ class Matrix4 extends Array {
     return this;
   }
 
+  /**
+   * Calculates and return determinant of this matrix
+   *
+   * @method determinant
+   * @returns {number}
+   */
   determinant() {
     var a00 = this[0], a01 = this[1], a02 = this[2], a03 = this[3],
       a10 = this[4], a11 = this[5], a12 = this[6], a13 = this[7],
@@ -65,36 +83,35 @@ class Matrix4 extends Array {
     return this;
   }
 
+  /**
+   *
+   * @method lookAt
+   * @param {Vector3} eye
+   * @param {Vector3} center
+   * @param {Vector3} up
+   * @returns {Matrix4} The camera matrix
+   */
   lookAt(eye, center, up) {
-    var x0, x1, x2, y0, y1, y2, z0, z1, z2, len,
-      eyeX = eye[0],
-      eyeY = eye[1],
-      eyeZ = eye[2],
-      upX = up[0],
-      upY = up[1],
-      upZ = up[2],
-      centerX = center[0],
-      centerY = center[1],
-      centerZ = center[2];
+    var x0, x1, x2, y0, y1, y2, z0, z1, z2, len;
 
-    if (Math.abs(eyeX - centerX) < GLMAT_EPSILON &&
-      Math.abs(eyeY - centerY) < GLMAT_EPSILON &&
-      Math.abs(eyeZ - centerZ) < GLMAT_EPSILON) {
+    if (Math.abs(eye.x - center.x) < EPSILON &&
+      Math.abs(eye.y - center.y) < EPSILON &&
+      Math.abs(eye.z - center.z) < EPSILON) {
       return this.identity();
     }
 
-    z0 = eyeX - centerX;
-    z1 = eyeY - centerY;
-    z2 = eyeZ - centerZ;
+    z0 = eye.x - center.x;
+    z1 = eye.y - center.y;
+    z2 = eye.z - center.z;
 
     len = 1 / Math.sqrt(z0 * z0 + z1 * z1 + z2 * z2);
     z0 *= len;
     z1 *= len;
     z2 *= len;
 
-    x0 = upY * z2 - upZ * z1;
-    x1 = upZ * z0 - upX * z2;
-    x2 = upX * z1 - upY * z0;
+    x0 = up.y * z2 - up.z * z1;
+    x1 = up.z * z0 - up.x * z2;
+    x2 = up.x * z1 - up.y * z0;
     len = Math.sqrt(x0 * x0 + x1 * x1 + x2 * x2);
     if (!len) {
       x0 = 0;
@@ -135,25 +152,39 @@ class Matrix4 extends Array {
     this[9] = y2;
     this[10] = z2;
     this[11] = 0;
-    this[12] = -(x0 * eyeX + x1 * eyeY + x2 * eyeZ);
-    this[13] = -(y0 * eyeX + y1 * eyeY + y2 * eyeZ);
-    this[14] = -(z0 * eyeX + z1 * eyeY + z2 * eyeZ);
+    this[12] = -(x0 * eye.x + x1 * eye.y + x2 * eye.z);
+    this[13] = -(y0 * eye.x + y1 * eye.y + y2 * eye.z);
+    this[14] = -(z0 * eye.x + z1 * eye.y + z2 * eye.z);
     this[15] = 1;
 
     return this;
   }
 
-  translate(v) {
-    this[12] = this[0] * v.x + this[4] * v.y + this[8] * v.z + this[12];
-    this[13] = this[1] * v.x + this[5] * v.y + this[9] * v.z + this[13];
-    this[14] = this[2] * v.x + this[6] * v.y + this[10] * v.z + this[14];
-    this[15] = this[3] * v.x + this[7] * v.y + this[11] * v.z + this[15];
+  /**
+   * Translate this matrix by given vector
+   *
+   * @method translate
+   * @param {Vector3} vector
+   * @returns {Matrix4}
+   */
+  translate(vector) {
+    this[12] = this[0] * vector.x + this[4] * vector.y + this[8] * vector.z + this[12];
+    this[13] = this[1] * vector.x + this[5] * vector.y + this[9] * vector.z + this[13];
+    this[14] = this[2] * vector.x + this[6] * vector.y + this[10] * vector.z + this[14];
+    this[15] = this[3] * vector.x + this[7] * vector.y + this[11] * vector.z + this[15];
 
     return this;
   }
 
-  rotate(rad, _axis) {
-    var axis = _axis.clone(),
+  /**
+   * Rotate this matrix by given angle and axis
+   *
+   * @param {Number} rad
+   * @param {Vector3} axis
+   * @returns {Matrix4}
+   */
+  rotate(rad, axis) {
+    var _axis = axis.clone(),
       s, c, t,
       a00, a01, a02, a03,
       a10, a11, a12, a13,
@@ -162,7 +193,7 @@ class Matrix4 extends Array {
       b10, b11, b12,
       b20, b21, b22;
 
-    axis.normalize();
+    _axis.normalize();
 
     s = Math.sin(rad);
     c = Math.cos(rad);
@@ -182,15 +213,15 @@ class Matrix4 extends Array {
     a23 = this[11];
 
     // Construct the elements of the rotation matrix
-    b00 = axis.x * axis.x * t + c;
-    b01 = axis.y * axis.x * t + axis.z * s;
-    b02 = axis.z * axis.x * t - axis.y * s;
-    b10 = axis.x * axis.y * t - axis.z * s;
-    b11 = axis.y * axis.y * t + c;
-    b12 = axis.z * axis.y * t + axis.x * s;
-    b20 = axis.x * axis.z * t + axis.y * s;
-    b21 = axis.y * axis.z * t - axis.x * s;
-    b22 = axis.z * axis.z * t + c;
+    b00 = _axis.x * _axis.x * t + c;
+    b01 = _axis.y * _axis.x * t + _axis.z * s;
+    b02 = _axis.z * _axis.x * t - _axis.y * s;
+    b10 = _axis.x * _axis.y * t - _axis.z * s;
+    b11 = _axis.y * _axis.y * t + c;
+    b12 = _axis.z * _axis.y * t + _axis.x * s;
+    b20 = _axis.x * _axis.z * t + _axis.y * s;
+    b21 = _axis.y * _axis.z * t - _axis.x * s;
+    b22 = _axis.z * _axis.z * t + c;
 
     // Perform rotation-specific matrix multiplication
     this[0] = a00 * b00 + a10 * b01 + a20 * b02;
@@ -209,6 +240,11 @@ class Matrix4 extends Array {
     return this;
   }
 
+  /**
+   * Returns inverse matrix3
+   *
+   * @returns {Matrix3}
+   */
   toInverseMat3() {
     var a00 = this[0], a01 = this[1], a02 = this[2];
     var a10 = this[4], a11 = this[5], a12 = this[6];
@@ -223,35 +259,56 @@ class Matrix4 extends Array {
     if (!d) {
       return null;
     }
+
     var id = 1 / d;
 
-    var dest = new Matrix3();
+    var result = new Matrix3();
 
-    dest[0] = b01 * id;
-    dest[1] = (-a22 * a01 + a02 * a21) * id;
-    dest[2] = (a12 * a01 - a02 * a11) * id;
-    dest[3] = b11 * id;
-    dest[4] = (a22 * a00 - a02 * a20) * id;
-    dest[5] = (-a12 * a00 + a02 * a10) * id;
-    dest[6] = b21 * id;
-    dest[7] = (-a21 * a00 + a01 * a20) * id;
-    dest[8] = (a11 * a00 - a01 * a10) * id;
+    result[0] = b01 * id;
+    result[1] = (-a22 * a01 + a02 * a21) * id;
+    result[2] = (a12 * a01 - a02 * a11) * id;
+    result[3] = b11 * id;
+    result[4] = (a22 * a00 - a02 * a20) * id;
+    result[5] = (-a12 * a00 + a02 * a10) * id;
+    result[6] = b21 * id;
+    result[7] = (-a21 * a00 + a01 * a20) * id;
+    result[8] = (a11 * a00 - a01 * a10) * id;
 
-    return dest;
+    return result;
   }
 
+  /**
+   * Rotates by given angle and giving X axis
+   *
+   * @param {Number} rad The angle by radian
+   */
   rotateX(rad) {
     this.rotate(rad, new Vector3(1, 0, 0));
   }
 
+  /**
+   * Rotates by given angle and giving Y axis
+   *
+   * @param {Number} rad The angle by radian
+   */
   rotateY(rad) {
     this.rotate(rad, new Vector3(0, 1, 0));
   }
 
+  /**
+   * Rotates by given angle and giving Z axis
+   *
+   * @param {Number} rad The angle by radian
+   */
   rotateZ(rad) {
     this.rotate(rad, new Vector3(0, 0, 1));
   }
 
+  /**
+   * Returns an array of this matrix
+   *
+   * @returns {Array}
+   */
   toArray() {
     var result = [];
 

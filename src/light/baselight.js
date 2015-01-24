@@ -6,6 +6,7 @@ export default
 class BaseLight {
   constructor() {
     this.index = dl_i++;
+    this.type = 'light';
     this.color = new Color(1, 1, 1);
   }
 }

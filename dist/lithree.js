@@ -16,9 +16,9 @@ var Camera = (function () {
     this.near = near;
     this.far = far;
     this.matrix = new Matrix4();
-    this.lookAt = [0, 0, 0];
-    this.position = [0, 0, 5];
-    this.up = [0, 1, 0];
+    this.lookAt = new Vector3();
+    this.position = new Vector3();
+    this.up = new Vector3();
     this._zoom = 1;
   }
 
@@ -176,9 +176,9 @@ var World = (function () {
   _prototypeProperties(World, null, {
     add: {
       value: function add(object) {
-        if (object instanceof BaseLight) {
+        if (object.type === "light") {
           this.lights.push(object);
-        } else {
+        } else if (object.type === "object") {
           this.children.push(object);
         }
       },
@@ -188,9 +188,9 @@ var World = (function () {
     },
     remove: {
       value: function remove(object) {
-        if (object instanceof BaseLight) {
+        if (object.type === "light") {
           this.lights.splice(this.lights.indexOf(object), 1);
-        } else {
+        } else if (object.type === "object") {
           this.children.splice(this.children.indexOf(object), 1);
         }
       },
@@ -202,6 +202,14 @@ var World = (function () {
 
   return World;
 })();"use strict";
+
+var dl_i = 0;
+
+var BaseLight = function BaseLight() {
+  this.index = dl_i++;
+  this.type = "light";
+  this.color = new Color(1, 1, 1);
+};"use strict";
 
 var _get = function get(object, property, receiver) {
   var desc = Object.getOwnPropertyDescriptor(object, property);
@@ -345,9 +353,14 @@ var _inherits = function (subClass, superClass) {
   if (superClass) subClass.__proto__ = superClass;
 };
 
-var GLMAT_EPSILON = 0.00001;
+var EPSILON = 0.00001;
 
 var Matrix4 = (function (Array) {
+  /**
+   * Matrix4 Constructor
+   *
+   * @method constructor
+   */
   function Matrix4() {
     for (var i = 16; i--;) {
       this.push(0);
@@ -358,6 +371,13 @@ var Matrix4 = (function (Array) {
 
   _prototypeProperties(Matrix4, null, {
     identity: {
+
+      /**
+       * Makes this matrix an identity matrix
+       *
+       * @method identity
+       * @returns {Matrix4}
+       */
       value: function identity() {
         for (var i = 16; i--;) {
           this[i] = i % 5 === 0 ? 1 : 0;
@@ -370,6 +390,13 @@ var Matrix4 = (function (Array) {
       configurable: true
     },
     determinant: {
+
+      /**
+       * Calculates and return determinant of this matrix
+       *
+       * @method determinant
+       * @returns {number}
+       */
       value: function determinant() {
         var a00 = this[0],
             a01 = this[1],
@@ -435,43 +462,34 @@ var Matrix4 = (function (Array) {
       configurable: true
     },
     lookAt: {
-      value: function lookAt(eye, center, up) {
-        var x0,
-            x1,
-            x2,
-            y0,
-            y1,
-            y2,
-            z0,
-            z1,
-            z2,
-            len,
-            eyeX = eye[0],
-            eyeY = eye[1],
-            eyeZ = eye[2],
-            upX = up[0],
-            upY = up[1],
-            upZ = up[2],
-            centerX = center[0],
-            centerY = center[1],
-            centerZ = center[2];
 
-        if (Math.abs(eyeX - centerX) < GLMAT_EPSILON && Math.abs(eyeY - centerY) < GLMAT_EPSILON && Math.abs(eyeZ - centerZ) < GLMAT_EPSILON) {
+      /**
+       *
+       * @method lookAt
+       * @param {Vector3} eye
+       * @param {Vector3} center
+       * @param {Vector3} up
+       * @returns {Matrix4} The camera matrix
+       */
+      value: function lookAt(eye, center, up) {
+        var x0, x1, x2, y0, y1, y2, z0, z1, z2, len;
+
+        if (Math.abs(eye.x - center.x) < EPSILON && Math.abs(eye.y - center.y) < EPSILON && Math.abs(eye.z - center.z) < EPSILON) {
           return this.identity();
         }
 
-        z0 = eyeX - centerX;
-        z1 = eyeY - centerY;
-        z2 = eyeZ - centerZ;
+        z0 = eye.x - center.x;
+        z1 = eye.y - center.y;
+        z2 = eye.z - center.z;
 
         len = 1 / Math.sqrt(z0 * z0 + z1 * z1 + z2 * z2);
         z0 *= len;
         z1 *= len;
         z2 *= len;
 
-        x0 = upY * z2 - upZ * z1;
-        x1 = upZ * z0 - upX * z2;
-        x2 = upX * z1 - upY * z0;
+        x0 = up.y * z2 - up.z * z1;
+        x1 = up.z * z0 - up.x * z2;
+        x2 = up.x * z1 - up.y * z0;
         len = Math.sqrt(x0 * x0 + x1 * x1 + x2 * x2);
         if (!len) {
           x0 = 0;
@@ -512,9 +530,9 @@ var Matrix4 = (function (Array) {
         this[9] = y2;
         this[10] = z2;
         this[11] = 0;
-        this[12] = -(x0 * eyeX + x1 * eyeY + x2 * eyeZ);
-        this[13] = -(y0 * eyeX + y1 * eyeY + y2 * eyeZ);
-        this[14] = -(z0 * eyeX + z1 * eyeY + z2 * eyeZ);
+        this[12] = -(x0 * eye.x + x1 * eye.y + x2 * eye.z);
+        this[13] = -(y0 * eye.x + y1 * eye.y + y2 * eye.z);
+        this[14] = -(z0 * eye.x + z1 * eye.y + z2 * eye.z);
         this[15] = 1;
 
         return this;
@@ -524,11 +542,19 @@ var Matrix4 = (function (Array) {
       configurable: true
     },
     translate: {
-      value: function translate(v) {
-        this[12] = this[0] * v.x + this[4] * v.y + this[8] * v.z + this[12];
-        this[13] = this[1] * v.x + this[5] * v.y + this[9] * v.z + this[13];
-        this[14] = this[2] * v.x + this[6] * v.y + this[10] * v.z + this[14];
-        this[15] = this[3] * v.x + this[7] * v.y + this[11] * v.z + this[15];
+
+      /**
+       * Translate this matrix by given vector
+       *
+       * @method translate
+       * @param {Vector3} vector
+       * @returns {Matrix4}
+       */
+      value: function translate(vector) {
+        this[12] = this[0] * vector.x + this[4] * vector.y + this[8] * vector.z + this[12];
+        this[13] = this[1] * vector.x + this[5] * vector.y + this[9] * vector.z + this[13];
+        this[14] = this[2] * vector.x + this[6] * vector.y + this[10] * vector.z + this[14];
+        this[15] = this[3] * vector.x + this[7] * vector.y + this[11] * vector.z + this[15];
 
         return this;
       },
@@ -537,8 +563,16 @@ var Matrix4 = (function (Array) {
       configurable: true
     },
     rotate: {
-      value: function rotate(rad, _axis) {
-        var axis = _axis.clone(),
+
+      /**
+       * Rotate this matrix by given angle and axis
+       *
+       * @param {Number} rad
+       * @param {Vector3} axis
+       * @returns {Matrix4}
+       */
+      value: function rotate(rad, axis) {
+        var _axis = axis.clone(),
             s,
             c,
             t,
@@ -564,7 +598,7 @@ var Matrix4 = (function (Array) {
             b21,
             b22;
 
-        axis.normalize();
+        _axis.normalize();
 
         s = Math.sin(rad);
         c = Math.cos(rad);
@@ -584,15 +618,15 @@ var Matrix4 = (function (Array) {
         a23 = this[11];
 
         // Construct the elements of the rotation matrix
-        b00 = axis.x * axis.x * t + c;
-        b01 = axis.y * axis.x * t + axis.z * s;
-        b02 = axis.z * axis.x * t - axis.y * s;
-        b10 = axis.x * axis.y * t - axis.z * s;
-        b11 = axis.y * axis.y * t + c;
-        b12 = axis.z * axis.y * t + axis.x * s;
-        b20 = axis.x * axis.z * t + axis.y * s;
-        b21 = axis.y * axis.z * t - axis.x * s;
-        b22 = axis.z * axis.z * t + c;
+        b00 = _axis.x * _axis.x * t + c;
+        b01 = _axis.y * _axis.x * t + _axis.z * s;
+        b02 = _axis.z * _axis.x * t - _axis.y * s;
+        b10 = _axis.x * _axis.y * t - _axis.z * s;
+        b11 = _axis.y * _axis.y * t + c;
+        b12 = _axis.z * _axis.y * t + _axis.x * s;
+        b20 = _axis.x * _axis.z * t + _axis.y * s;
+        b21 = _axis.y * _axis.z * t - _axis.x * s;
+        b22 = _axis.z * _axis.z * t + c;
 
         // Perform rotation-specific matrix multiplication
         this[0] = a00 * b00 + a10 * b01 + a20 * b02;
@@ -615,6 +649,12 @@ var Matrix4 = (function (Array) {
       configurable: true
     },
     toInverseMat3: {
+
+      /**
+       * Returns inverse matrix3
+       *
+       * @returns {Matrix3}
+       */
       value: function toInverseMat3() {
         var a00 = this[0],
             a01 = this[1],
@@ -635,27 +675,34 @@ var Matrix4 = (function (Array) {
         if (!d) {
           return null;
         }
+
         var id = 1 / d;
 
-        var dest = new Matrix3();
+        var result = new Matrix3();
 
-        dest[0] = b01 * id;
-        dest[1] = (-a22 * a01 + a02 * a21) * id;
-        dest[2] = (a12 * a01 - a02 * a11) * id;
-        dest[3] = b11 * id;
-        dest[4] = (a22 * a00 - a02 * a20) * id;
-        dest[5] = (-a12 * a00 + a02 * a10) * id;
-        dest[6] = b21 * id;
-        dest[7] = (-a21 * a00 + a01 * a20) * id;
-        dest[8] = (a11 * a00 - a01 * a10) * id;
+        result[0] = b01 * id;
+        result[1] = (-a22 * a01 + a02 * a21) * id;
+        result[2] = (a12 * a01 - a02 * a11) * id;
+        result[3] = b11 * id;
+        result[4] = (a22 * a00 - a02 * a20) * id;
+        result[5] = (-a12 * a00 + a02 * a10) * id;
+        result[6] = b21 * id;
+        result[7] = (-a21 * a00 + a01 * a20) * id;
+        result[8] = (a11 * a00 - a01 * a10) * id;
 
-        return dest;
+        return result;
       },
       writable: true,
       enumerable: true,
       configurable: true
     },
     rotateX: {
+
+      /**
+       * Rotates by given angle and giving X axis
+       *
+       * @param {Number} rad The angle by radian
+       */
       value: function rotateX(rad) {
         this.rotate(rad, new Vector3(1, 0, 0));
       },
@@ -664,6 +711,12 @@ var Matrix4 = (function (Array) {
       configurable: true
     },
     rotateY: {
+
+      /**
+       * Rotates by given angle and giving Y axis
+       *
+       * @param {Number} rad The angle by radian
+       */
       value: function rotateY(rad) {
         this.rotate(rad, new Vector3(0, 1, 0));
       },
@@ -672,6 +725,12 @@ var Matrix4 = (function (Array) {
       configurable: true
     },
     rotateZ: {
+
+      /**
+       * Rotates by given angle and giving Z axis
+       *
+       * @param {Number} rad The angle by radian
+       */
       value: function rotateZ(rad) {
         this.rotate(rad, new Vector3(0, 0, 1));
       },
@@ -680,6 +739,12 @@ var Matrix4 = (function (Array) {
       configurable: true
     },
     toArray: {
+
+      /**
+       * Returns an array of this matrix
+       *
+       * @returns {Array}
+       */
       value: function toArray() {
         var result = [];
 
@@ -1053,6 +1118,10 @@ var ob_i = 0;
 
 var Object3D = (function () {
   function Object3D() {
+    this.color = new Color();
+
+    this.type = "object";
+
     this.scale = new Vector3();
     this.position = new Vector3();
     this.rotation = new Vector3();
@@ -1067,12 +1136,8 @@ var Object3D = (function () {
 
     this.buffers = {};
 
-    this.drawingMode = Common.drawingMode.TRIANGLES;
-
-    this.darwingFunction = 0;
-    this.color = new Color();
-
-    this.shader = false;
+    this.drawingMode = Common.drawingMode.LINE_STRIP;
+    this.darwingFunction = Common.drawingFunctions.ARRAYS;
   }
 
   _prototypeProperties(Object3D, null, {

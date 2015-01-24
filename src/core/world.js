@@ -1,4 +1,4 @@
-import BaseLight from '../light/light.js';
+import BaseLight from '../light/baselight.js';
 import Object3D from '../object/object3d.js';
 
 export default
@@ -10,17 +10,17 @@ class World {
   }
 
   add(object) {
-    if(object instanceof BaseLight) {
+    if(object.type === 'light') {
       this.lights.push(object);
-    } else {
+    } else if(object.type === 'object') {
       this.children.push(object);
     }
   }
 
   remove(object) {
-    if(object instanceof BaseLight) {
+    if(object.type === 'light') {
       this.lights.splice(this.lights.indexOf(object), 1);
-    } else {
+    } else if(object.type === 'object') {
       this.children.splice(this.children.indexOf(object), 1);
     }
   }
