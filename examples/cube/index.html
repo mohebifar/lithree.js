@@ -18,9 +18,9 @@
 
 <script>
   var world = new LiThree.World();
-  var renderer = new LiThree.WebGLRenderer(window.innerWidth, window.innerHeight, world);
+  var renderer = new LiThree.WebGLRenderer(640, 480, world);
 
-  var cube = LiThree.ObjectFactory.Cube();
+  var cube = LiThree.ObjectFactory.Cube(2);
   cube.drawingMode = WebGLRenderingContext.TRIANGLES;
 
   cube.position.z = -10;
@@ -30,7 +30,7 @@
   cube.color.hex = '#A22';
 
   var light = new LiThree.DirectionalLight();
-  light.direction = [1.1, 0.8, 1.2];
+  light.direction.set(1.1, 0.8, 1.2);
   light.color.rgb(0.2, 0.2, 0.2);
   world.add(light);
   var lastTime = Date.now();
