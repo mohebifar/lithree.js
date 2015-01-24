@@ -16,8 +16,8 @@ class Camera {
   }
 
   set zoom(zoom) {
-    if (zoom < 1) {
-      throw 'Zoom should be equal or greater than 1';
+    if (zoom < 0) {
+      throw 'Zoom should be equal or greater than 0';
     }
 
     this._zoom = zoom;
