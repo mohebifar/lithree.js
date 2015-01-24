@@ -1,6 +1,5 @@
 var grunt = require('grunt');
 require('load-grunt-tasks')(grunt);
-grunt.loadNpmTasks('grunt-contrib-uglify');
 
 grunt.initConfig({
   '6to5': {
