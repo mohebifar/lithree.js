@@ -1,3 +1,6 @@
+import Vector3 from 'vector3.js';
+import Matrix3 from 'matrix3.js';
+
 var GLMAT_EPSILON = 0.00001;
 
 export default

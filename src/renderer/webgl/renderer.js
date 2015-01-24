@@ -1,3 +1,6 @@
+import Camera from '../../core/camera.js';
+import Common from '../../core/common.js';
+import ShaderProgrammer from 'shader/programmer.js';
 import Renderer from '../renderer.js';
 
 export default

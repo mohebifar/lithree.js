@@ -1,5 +1,10 @@
+import Common from '../../core/common.js';
+import Object3D from '../object3d.js';
+
 export default
   function CircleFactory(radius = 1, steps = 20) {
+    var i, a;
+
     var circle = new Object3D();
 
     circle.vertices.push(0, 0, 0);
@@ -10,15 +15,15 @@ export default
     var step = Math.PI / (steps - 1);
     steps *= 2;
 
-    for (var a = 0, i = 1; i < steps; a += step, i++) {
+    for (a = 0, i = 1; i < steps; a += step, i++) {
       circle.vertices.push(Math.cos(a) * radius, Math.sin(a) * radius, 0);
     }
 
-    for (var i = 0; i < circle.vertices.length; i++) {
+    for (i = 0; i < circle.vertices.length; i++) {
       circle.vertexNormals.push(0, 0, 1);
     }
 
-    for (var i = 0; i < circle.vertices.length / 3; i++) {
+    for (i = 0; i < circle.vertices.length / 3; i++) {
       circle.vertexIndex.push(i);
     }
 

@@ -1,3 +1,6 @@
+import BaseLight from '../light/light.js';
+import Object3D from '../object/object3d.js';
+
 export default
 class World {
 
@@ -7,7 +10,7 @@ class World {
   }
 
   add(object) {
-    if(object instanceof DirectionalLight) {
+    if(object instanceof BaseLight) {
       this.lights.push(object);
     } else {
       this.children.push(object);
@@ -15,7 +18,7 @@ class World {
   }
 
   remove(object) {
-    if(object instanceof DirectionalLight) {
+    if(object instanceof BaseLight) {
       this.lights.splice(this.lights.indexOf(object), 1);
     } else {
       this.children.splice(this.children.indexOf(object), 1);

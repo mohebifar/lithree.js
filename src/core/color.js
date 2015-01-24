@@ -22,7 +22,7 @@ class Color {
   get hex() {
     function componentToHex(c) {
       var hex = c.toString(16);
-      return hex.length == 1 ? "0" + hex : hex;
+      return hex.length === 1 ? "0" + hex : hex;
     }
 
     return "#" + componentToHex(this.array[0]) + componentToHex(this.array[1]) + componentToHex(this.array[2]);

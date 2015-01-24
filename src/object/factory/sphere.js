@@ -1,17 +1,22 @@
+import Common from '../../core/common.js';
+import Object3D from '../object3d.js';
+
 export default
   function SphereFactory(radius = 1, latitudeBands = 30, longitudeBands = 30) {
+    var latNumber, longNumber;
+
     var sphere = new Object3D();
 
     var vertexPositionData = [];
     var normalData = [];
     var textureCoordData = [];
 
-    for (var latNumber = 0; latNumber <= latitudeBands; latNumber++) {
+    for (latNumber = 0; latNumber <= latitudeBands; latNumber++) {
       var theta = latNumber * Math.PI / latitudeBands;
       var sinTheta = Math.sin(theta);
       var cosTheta = Math.cos(theta);
 
-      for (var longNumber = 0; longNumber <= longitudeBands; longNumber++) {
+      for (longNumber = 0; longNumber <= longitudeBands; longNumber++) {
         var phi = longNumber * 2 * Math.PI / longitudeBands;
         var sinPhi = Math.sin(phi);
         var cosPhi = Math.cos(phi);
@@ -34,8 +39,8 @@ export default
     }
 
     var indexData = [];
-    for (var latNumber = 0; latNumber < latitudeBands; latNumber++) {
-      for (var longNumber = 0; longNumber < longitudeBands; longNumber++) {
+    for (latNumber = 0; latNumber < latitudeBands; latNumber++) {
+      for (longNumber = 0; longNumber < longitudeBands; longNumber++) {
         var first = (latNumber * (longitudeBands + 1)) + longNumber;
         var second = first + longitudeBands + 1;
         indexData.push(first);

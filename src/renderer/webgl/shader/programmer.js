@@ -1,3 +1,5 @@
+import ShaderChunks from 'shader-chunk.js';
+
 /**
  * This class is used to create and compile a glsl program.
  *

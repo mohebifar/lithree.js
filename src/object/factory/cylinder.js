@@ -1,5 +1,11 @@
+import Common from '../../core/common.js';
+import Vector3 from '../../math/vector3.js';
+import Object3D from '../object3d.js';
+
 export default
   function CylinderFactory(height = 2, radiusTop = 1, radiusBottom = 1, steps = 20) {
+    var i, a;
+
     var cylinder = new Object3D();
 
     cylinder.vertexIndex = [];
@@ -11,7 +17,7 @@ export default
 
     var heightTop = height / 2, heightBottom = height / -2;
 
-    for (var a = 0, i = 1; i <= steps; a += step, i++) {
+    for (a = 0, i = 1; i <= steps; a += step, i++) {
       var positionTop = new Vector3(Math.cos(a) * radiusTop, Math.sin(a) * radiusTop, heightTop);
       var positionBottom = new Vector3(Math.cos(a) * radiusBottom, Math.sin(a) * radiusBottom, heightBottom);
 
@@ -24,7 +30,7 @@ export default
       cylinder.vertices.push(positionBottom.x, positionBottom.y, positionBottom.z);
     }
 
-    for (var i = 0; i < cylinder.vertices.length / 3; i++) {
+    for (i = 0; i < cylinder.vertices.length / 3; i++) {
       cylinder.vertexIndex.push(i);
     }
 

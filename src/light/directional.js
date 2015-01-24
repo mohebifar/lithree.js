@@ -1,10 +1,10 @@
-var dl_i = 0;
+import Vector3 from '../math/vector3.js';
+import BaseLight from 'light.js';
 
 export default
-class DirectionalLight {
+class DirectionalLight extends BaseLight {
   constructor() {
-    this.color = new Color(1, 1, 1);
+    super.constructor();
     this.direction = new Vector3(1, 1, 1);
-    this.index = dl_i++;
   }
 }

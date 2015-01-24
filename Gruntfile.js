@@ -32,7 +32,10 @@ grunt.initConfig({
     }
   },
   uglify: {
-    my_target: {
+    options: {
+      sourceMap: true
+    },
+    build: {
       files: {
         'dist/lithree.min.js': ['dist/lithree.js']
       }
@@ -47,6 +50,14 @@ grunt.initConfig({
         spawn: false
       }
     }
+  },
+  jshint: {
+    options: {
+      jshintrc: '.jshintrc',
+    },
+    allFiles: [
+      'src/**/*.js', '!src/intro.js', '!src/outro.js'
+    ]
   }
 });
 

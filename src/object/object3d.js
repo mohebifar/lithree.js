@@ -1,3 +1,8 @@
+import Vector3 from '../math/vector3.js';
+import Matrix4 from '../math/matrix4.js';
+import Color from '../core/color.js';
+import Common from '../core/common.js';
+
 var ob_i = 0;
 
 export default

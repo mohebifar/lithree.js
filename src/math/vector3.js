@@ -17,7 +17,7 @@ class Vector3 {
   }
 
   add(value) {
-    if (value instanceof Vector3) {
+    if (typeof value === 'object') {
       this.x += value.x;
       this.y += value.y;
       this.z += value.z;
@@ -29,7 +29,7 @@ class Vector3 {
   }
 
   subtract(value) {
-    if (value instanceof Vector3) {
+    if (typeof value === 'object') {
       this.x -= value.x;
       this.y -= value.y;
       this.z -= value.z;
@@ -39,7 +39,7 @@ class Vector3 {
   }
 
   multiply(value) {
-    if (value instanceof Vector3) {
+    if (typeof value === 'object') {
       this.x *= value.x;
       this.y *= value.y;
       this.z *= value.z;
@@ -51,7 +51,7 @@ class Vector3 {
   }
 
   divide(value) {
-    if (value instanceof Vector3) {
+    if (typeof value === 'object') {
       this.x /= value.x;
       this.y /= value.y;
       this.z /= value.z;

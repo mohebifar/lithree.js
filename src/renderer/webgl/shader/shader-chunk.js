@@ -11,7 +11,7 @@ export var ShaderChunks =
     main: {
       default: `gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);`,
       directionalLight: function (index) {
-        return `vec3 transformedNormal = uNMatrix * aVertexNormal; float directionalLightWeighting${index} = max(dot(transformedNormal, uLightingDirection${index}), 0.0); vLightWeighting = uDirectionalColor${index} * directionalLightWeighting${index};`
+        return `vec3 transformedNormal = uNMatrix * aVertexNormal; float directionalLightWeighting${index} = max(dot(transformedNormal, uLightingDirection${index}), 0.0); vLightWeighting = uDirectionalColor${index} * directionalLightWeighting${index};`;
       }
 
     }

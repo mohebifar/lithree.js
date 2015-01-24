@@ -83,7 +83,7 @@ var Color = (function () {
       get: function () {
         var componentToHex = function (c) {
           var hex = c.toString(16);
-          return hex.length == 1 ? "0" + hex : hex;
+          return hex.length === 1 ? "0" + hex : hex;
         };
 
         return "#" + componentToHex(this.array[0]) + componentToHex(this.array[1]) + componentToHex(this.array[2]);
@@ -160,9 +160,7 @@ if (!WebGLRenderingContext) {
   };
 }"use strict";
 
-function computeNormal(vertices) {
-  var v, vl, f, fl, face, vertices;
-}"use strict";
+function computeNormal() {}"use strict";
 
 var _prototypeProperties = function (child, staticProps, instanceProps) {
   if (staticProps) Object.defineProperties(child, staticProps);
@@ -178,7 +176,7 @@ var World = (function () {
   _prototypeProperties(World, null, {
     add: {
       value: function add(object) {
-        if (object instanceof DirectionalLight) {
+        if (object instanceof BaseLight) {
           this.lights.push(object);
         } else {
           this.children.push(object);
@@ -190,7 +188,7 @@ var World = (function () {
     },
     remove: {
       value: function remove(object) {
-        if (object instanceof DirectionalLight) {
+        if (object instanceof BaseLight) {
           this.lights.splice(this.lights.indexOf(object), 1);
         } else {
           this.children.splice(this.children.indexOf(object), 1);
@@ -205,12 +203,59 @@ var World = (function () {
   return World;
 })();"use strict";
 
+var _get = function get(object, property, receiver) {
+  var desc = Object.getOwnPropertyDescriptor(object, property);
+
+  if (desc === undefined) {
+    var parent = Object.getPrototypeOf(object);
+
+    if (parent === null) {
+      return undefined;
+    } else {
+      return get(parent, property, receiver);
+    }
+  } else if ("value" in desc && desc.writable) {
+    return desc.value;
+  } else {
+    var getter = desc.get;
+    if (getter === undefined) {
+      return undefined;
+    }
+    return getter.call(receiver);
+  }
+};
+
+var _inherits = function (subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+  }
+  subClass.prototype = Object.create(superClass && superClass.prototype, {
+    constructor: {
+      value: subClass,
+      enumerable: false,
+      writable: true,
+      configurable: true
+    }
+  });
+  if (superClass) subClass.__proto__ = superClass;
+};
+
+var DirectionalLight = (function (BaseLight) {
+  function DirectionalLight() {
+    _get(Object.getPrototypeOf(DirectionalLight.prototype), "constructor", this).call(this);
+    this.direction = new Vector3(1, 1, 1);
+  }
+
+  _inherits(DirectionalLight, BaseLight);
+
+  return DirectionalLight;
+})(BaseLight);"use strict";
+
 var dl_i = 0;
 
-var DirectionalLight = function DirectionalLight() {
-  this.color = new Color(1, 1, 1);
-  this.direction = new Vector3(1, 1, 1);
+var BaseLight = function BaseLight() {
   this.index = dl_i++;
+  this.color = new Color(1, 1, 1);
 };"use strict";
 
 var _prototypeProperties = function (child, staticProps, instanceProps) {
@@ -689,7 +734,7 @@ var Vector3 = (function () {
     },
     add: {
       value: function add(value) {
-        if (value instanceof Vector3) {
+        if (typeof value === "object") {
           this.x += value.x;
           this.y += value.y;
           this.z += value.z;
@@ -705,7 +750,7 @@ var Vector3 = (function () {
     },
     subtract: {
       value: function subtract(value) {
-        if (value instanceof Vector3) {
+        if (typeof value === "object") {
           this.x -= value.x;
           this.y -= value.y;
           this.z -= value.z;
@@ -719,7 +764,7 @@ var Vector3 = (function () {
     },
     multiply: {
       value: function multiply(value) {
-        if (value instanceof Vector3) {
+        if (typeof value === "object") {
           this.x *= value.x;
           this.y *= value.y;
           this.z *= value.z;
@@ -735,7 +780,7 @@ var Vector3 = (function () {
     },
     divide: {
       value: function divide(value) {
-        if (value instanceof Vector3) {
+        if (typeof value === "object") {
           this.x /= value.x;
           this.y /= value.y;
           this.z /= value.z;
@@ -807,6 +852,8 @@ var Vector3 = (function () {
 function CircleFactory() {
   var radius = arguments[0] === undefined ? 1 : arguments[0];
   var steps = arguments[1] === undefined ? 20 : arguments[1];
+  var i, a;
+
   var circle = new Object3D();
 
   circle.vertices.push(0, 0, 0);
@@ -817,15 +864,15 @@ function CircleFactory() {
   var step = Math.PI / (steps - 1);
   steps *= 2;
 
-  for (var a = 0, i = 1; i < steps; a += step, i++) {
+  for (a = 0, i = 1; i < steps; a += step, i++) {
     circle.vertices.push(Math.cos(a) * radius, Math.sin(a) * radius, 0);
   }
 
-  for (var i = 0; i < circle.vertices.length; i++) {
+  for (i = 0; i < circle.vertices.length; i++) {
     circle.vertexNormals.push(0, 0, 1);
   }
 
-  for (var i = 0; i < circle.vertices.length / 3; i++) {
+  for (i = 0; i < circle.vertices.length / 3; i++) {
     circle.vertexIndex.push(i);
   }
 
@@ -896,6 +943,8 @@ function CylinderFactory() {
   var radiusTop = arguments[1] === undefined ? 1 : arguments[1];
   var radiusBottom = arguments[2] === undefined ? 1 : arguments[2];
   var steps = arguments[3] === undefined ? 20 : arguments[3];
+  var i, a;
+
   var cylinder = new Object3D();
 
   cylinder.vertexIndex = [];
@@ -908,7 +957,7 @@ function CylinderFactory() {
   var heightTop = height / 2,
       heightBottom = height / -2;
 
-  for (var a = 0, i = 1; i <= steps; a += step, i++) {
+  for (a = 0, i = 1; i <= steps; a += step, i++) {
     var positionTop = new Vector3(Math.cos(a) * radiusTop, Math.sin(a) * radiusTop, heightTop);
     var positionBottom = new Vector3(Math.cos(a) * radiusBottom, Math.sin(a) * radiusBottom, heightBottom);
 
@@ -921,7 +970,7 @@ function CylinderFactory() {
     cylinder.vertices.push(positionBottom.x, positionBottom.y, positionBottom.z);
   }
 
-  for (var i = 0; i < cylinder.vertices.length / 3; i++) {
+  for (i = 0; i < cylinder.vertices.length / 3; i++) {
     cylinder.vertexIndex.push(i);
   }
 
@@ -935,18 +984,20 @@ function SphereFactory() {
   var radius = arguments[0] === undefined ? 1 : arguments[0];
   var latitudeBands = arguments[1] === undefined ? 30 : arguments[1];
   var longitudeBands = arguments[2] === undefined ? 30 : arguments[2];
+  var latNumber, longNumber;
+
   var sphere = new Object3D();
 
   var vertexPositionData = [];
   var normalData = [];
   var textureCoordData = [];
 
-  for (var latNumber = 0; latNumber <= latitudeBands; latNumber++) {
+  for (latNumber = 0; latNumber <= latitudeBands; latNumber++) {
     var theta = latNumber * Math.PI / latitudeBands;
     var sinTheta = Math.sin(theta);
     var cosTheta = Math.cos(theta);
 
-    for (var longNumber = 0; longNumber <= longitudeBands; longNumber++) {
+    for (longNumber = 0; longNumber <= longitudeBands; longNumber++) {
       var phi = longNumber * 2 * Math.PI / longitudeBands;
       var sinPhi = Math.sin(phi);
       var cosPhi = Math.cos(phi);
@@ -969,8 +1020,8 @@ function SphereFactory() {
   }
 
   var indexData = [];
-  for (var latNumber = 0; latNumber < latitudeBands; latNumber++) {
-    for (var longNumber = 0; longNumber < longitudeBands; longNumber++) {
+  for (latNumber = 0; latNumber < latitudeBands; latNumber++) {
+    for (longNumber = 0; longNumber < longitudeBands; longNumber++) {
       var first = latNumber * (longitudeBands + 1) + longNumber;
       var second = first + longitudeBands + 1;
       indexData.push(first);

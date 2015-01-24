@@ -1,3 +1,6 @@
+import Common from '../../core/common.js';
+import Object3D from '../object3d.js';
+
 export default
   function CubeFactory(size = 1) {
     var cube = new Object3D();
