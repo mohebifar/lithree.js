@@ -3,8 +3,21 @@ import Uniform from 'uniform.js';
 
 var tmpId = 0;
 
+/**
+ * This class represents a shader program (vertex shader, fragment shader)
+ *
+ * @class Shader
+ */
 export default
 class Shader {
+
+  /**
+   * Constructor of Shader
+   *
+   * @method constructor
+   * @param type
+   * @param programmer
+   */
   constructor(type, programmer) {
     this._variables = {};
     this._programmer = programmer;
@@ -13,6 +26,11 @@ class Shader {
     this.type = type;
   }
 
+  /**
+   * Initiate variable by allocating location in shader program
+   *
+   * @method init
+   */
   init() {
     for (var i in this._variables) {
       if(typeof this._variables[i].create !== 'undefined') {
@@ -21,26 +39,60 @@ class Shader {
     }
   }
 
+  /**
+   * Create a uniform in program
+   *
+   * @method uniform
+   * @param type
+   * @param callback
+   * @param name
+   * @returns {Uniform}
+   */
   uniform(type, callback = null, name = 'tmp_' + tmpId++) {
     var uniform = new Uniform(type, name, this._programmer);
-    uniform.onchange = callback;
+    uniform.onupdate = callback;
     this._variables[name] = uniform;
     return uniform;
   }
 
+  /**
+   * Create an attribute in program
+   *
+   * @method attribute
+   * @param type
+   * @param callback
+   * @param name
+   * @returns {Attribute}
+   */
   attribute(type, callback = null, name = 'tmp_' + tmpId++) {
     var attribute = new Attribute(type, name, this._programmer);
-    attribute.onchange = callback;
+    attribute.onupdate = callback;
     this._variables[name] = attribute;
     return attribute;
   }
 
+  /**
+   * Create a varying in shader program
+   *
+   * @method varying
+   * @param type
+   * @param name
+   * @returns {Object}
+   */
   varying(type, name = 'tmp_' + tmpId++) {
     this._variables[name] = {name: name, type: type, prefix: 'varying'};
 
     return this._variables[name];
   }
 
+  /**
+   * Set a precision in shader program
+   *
+   * @method precision
+   * @param {String} rule
+   * @param {String} type
+   * @returns {Object}
+   */
   precision(rule, type) {
     var name = 'tmp_' + tmpId++;
     this._variables[name] = {name: type, type: rule, prefix: 'precision'};
@@ -48,6 +100,15 @@ class Shader {
     return this._variables[name];
   }
 
+  /**
+   * Bind a parameter in program. You can access parameters in your code
+   * by using `%` prefix.
+   *
+   * @method bind
+   * @param name
+   * @param value
+   * @returns {Shader}
+   */
   bind(name, value) {
     if(typeof value === 'string') {
       value = this.getVariable(value);
@@ -58,6 +119,13 @@ class Shader {
     return this;
   }
 
+  /**
+   * Inject some code into main context
+   *
+   * @param code
+   * @param params
+   * @returns {Shader}
+   */
   code(code, params) {
     this._code += code;
 
@@ -70,6 +138,14 @@ class Shader {
     return this;
   }
 
+  /**
+   * Get a variable by given name
+   *
+   * @method getVariable
+   * @throws Error if given variable is not set
+   * @param name
+   * @returns {Object}
+   */
   getVariable(name) {
     if(typeof this._variables[name] !== 'undefined') {
       return this._variables[name];
@@ -78,6 +154,11 @@ class Shader {
     }
   }
 
+  /**
+   * Generates and returns code of shader
+   *
+   * @returns {String}
+   */
   toString() {
     var i, variable, code = '';
 

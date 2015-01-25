@@ -1,6 +1,15 @@
 import Common from '../../core/common.js';
 import Object3D from '../object3d.js';
 
+/**
+ * Circle factory
+ *
+ * @function CircleFactory
+ * @param {Number} [radius=1]
+ * @param {Number} [steps=2]
+ * @returns {Object3D}
+ * @constructor
+ */
 export default
   function CircleFactory(radius = 1, steps = 20) {
     var i, a;

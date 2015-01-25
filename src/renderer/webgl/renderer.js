@@ -1,8 +1,13 @@
-import Camera from '../../core/camera.js';
+import PerspectiveCamera from '../../camera/perspective-camera.js';
 import Common from '../../core/common.js';
 import ShaderProgrammer from 'shader/programmer.js';
 import Renderer from '../renderer.js';
 
+/**
+ * Renderer for WebGL canvaas
+ *
+ * @class WebGLRenderer
+ */
 export default
 class WebGLRenderer extends Renderer {
 
@@ -17,7 +22,7 @@ class WebGLRenderer extends Renderer {
     super.constructor(width, height);
 
     this.world = world;
-    this.camera = new Camera();
+    this.camera = new PerspectiveCamera();
 
     this.camera.aspect = this.width / this.height;
     this.camera.updatePerspective();

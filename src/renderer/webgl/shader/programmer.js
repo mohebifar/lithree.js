@@ -40,14 +40,14 @@ class ShaderProgrammer {
       fragmentProgram = this.fragmentProgram;
 
     for (i in vertexProgram._variables) {
-      if (vertexProgram._variables[i].change) {
-        vertexProgram._variables[i].change();
+      if (vertexProgram._variables[i].update) {
+        vertexProgram._variables[i].update();
       }
     }
 
     for (i in fragmentProgram._variables) {
-      if (fragmentProgram._variables[i].change) {
-        fragmentProgram._variables[i].change();
+      if (fragmentProgram._variables[i].update) {
+        fragmentProgram._variables[i].update();
       }
     }
   }

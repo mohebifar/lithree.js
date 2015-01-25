@@ -1,14 +1,31 @@
 import Vector3 from '../math/vector3.js';
 import BaseLight from 'baselight.js';
 
+/**
+ * Directional light class
+ *
+ * @class DirectionalLight
+ */
 export default
 class DirectionalLight extends BaseLight {
 
+  /**
+   * Constructor of DirectionalLight
+   *
+   * @method constructor
+   */
   constructor() {
     super.constructor();
     this.direction = new Vector3(1, 1, 1);
   }
 
+  /**
+   * Inject codes to shader to affect light
+   *
+   * @method program
+   * @param vertexProgram
+   * @param fragmentProgram
+   */
   program(vertexProgram, fragmentProgram) {
 
     var _this = this;
@@ -28,8 +45,6 @@ class DirectionalLight extends BaseLight {
       ld: lightDirection,
       c: color
     });
-
-
   }
 
 }

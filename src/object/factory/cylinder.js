@@ -2,6 +2,17 @@ import Common from '../../core/common.js';
 import Vector3 from '../../math/vector3.js';
 import Object3D from '../object3d.js';
 
+/**
+ * Cylinder factory
+ *
+ * @function CylinderFactory
+ * @param {Number} [height=2]
+ * @param {Number} [radiusTop=1]
+ * @param {Number} [radiusBottom=1]
+ * @param {Number} [steps=20]
+ * @returns {Object3D}
+ * @constructor
+ */
 export default
   function CylinderFactory(height = 2, radiusTop = 1, radiusBottom = 1, steps = 20) {
     var i, a;

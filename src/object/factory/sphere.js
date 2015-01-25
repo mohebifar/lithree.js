@@ -1,6 +1,16 @@
 import Common from '../../core/common.js';
 import Object3D from '../object3d.js';
 
+/**
+ * Sphere factory
+ *
+ * @function SphereFactory
+ * @param {Number} [radius=1]
+ * @param {Number} [latitudeBands=30]
+ * @param {Number} [longitudeBands=30]
+ * @returns {Object3D}
+ * @constructor
+ */
 export default
   function SphereFactory(radius = 1, latitudeBands = 30, longitudeBands = 30) {
     var latNumber, longNumber;

@@ -6,7 +6,9 @@ export default
 class Uniform {
 
   /**
-   * Constructor of unifrom
+   * Constructor of Unifrom
+   *
+   * @method constructor
    * @param type
    * @param name
    * @param programmer
@@ -15,21 +17,37 @@ class Uniform {
     this.type = type;
     this.name = name;
 
-    this.onchange = null;
+    this.onupdate = null;
 
     this._porgrammer = programmer;
   }
 
+  /**
+   * Allocate this uniform's location in shader program
+   *
+   * @method create
+   */
   create() {
     this.location = this._porgrammer.renderer.gl.getUniformLocation(this._porgrammer.program, this.name);
   }
 
-  change() {
-    if(typeof this.onchange === 'function') {
-      this.onchange.apply(this);
+  /**
+   * Call update function for this variable
+   *
+   * @method update
+   */
+  update() {
+    if(typeof this.onupdate === 'function') {
+      this.onupdate.apply(this);
     }
   }
 
+  /**
+   * Set value of this variable
+   *
+   * @method {*} value The value to set
+   * @param value
+   */
   value(value) {
     var gl = this._porgrammer.gl;
 

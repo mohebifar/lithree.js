@@ -1,10 +1,11 @@
-
 root.LiThree = {
   Renderer: Renderer,
   WebGLRenderer: WebGLRenderer,
   World: World,
   Object3D: Object3D,
-  Camera: Camera,
+  Camera: {
+    Perspective: PerspectiveCamera
+  },
   Color: Color,
   Math: {
     Vector3: Vector3,

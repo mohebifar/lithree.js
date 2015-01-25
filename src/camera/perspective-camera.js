@@ -2,7 +2,7 @@ import Matrix4 from '../math/matrix4.js';
 import Vector3 from '../math/vector3.js';
 
 export default
-class Camera {
+class PerspectiveCamera {
   constructor(fovy = 0.785398, aspect = 1, near = 0.1, far = 100) {
     this.fovy = fovy;
     this.aspect = aspect;

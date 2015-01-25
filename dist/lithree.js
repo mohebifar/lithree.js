@@ -5,6 +5,108 @@ var _prototypeProperties = function (child, staticProps, instanceProps) {
   if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
 };
 
+var PerspectiveCamera = (function () {
+  function PerspectiveCamera() {
+    var fovy = arguments[0] === undefined ? 0.785398 : arguments[0];
+    var aspect = arguments[1] === undefined ? 1 : arguments[1];
+    var near = arguments[2] === undefined ? 0.1 : arguments[2];
+    var far = arguments[3] === undefined ? 100 : arguments[3];
+    this.fovy = fovy;
+    this.aspect = aspect;
+    this.near = near;
+    this.far = far;
+    this.matrix = new Matrix4();
+    this.lookAt = new Vector3();
+    this.position = new Vector3();
+    this.up = new Vector3();
+    this._zoom = 1;
+  }
+
+  _prototypeProperties(PerspectiveCamera, null, {
+    zoom: {
+      set: function (zoom) {
+        if (zoom < 0) {
+          throw "Zoom should be equal or greater than 0";
+        }
+
+        this._zoom = zoom;
+      },
+      get: function () {
+        return this._zoom;
+      },
+      enumerable: true,
+      configurable: true
+    },
+    updatePerspective: {
+      value: function updatePerspective() {
+        var fovy = 2 * Math.atan(Math.tan(this.fovy * 0.5) / this._zoom);
+        this.matrix.perspective(fovy, this.aspect, this.near, this.far);
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    }
+  });
+
+  return PerspectiveCamera;
+})();"use strict";
+
+var _prototypeProperties = function (child, staticProps, instanceProps) {
+  if (staticProps) Object.defineProperties(child, staticProps);
+  if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
+};
+
+var PerspectiveCamera = (function () {
+  function PerspectiveCamera() {
+    var fovy = arguments[0] === undefined ? 0.785398 : arguments[0];
+    var aspect = arguments[1] === undefined ? 1 : arguments[1];
+    var near = arguments[2] === undefined ? 0.1 : arguments[2];
+    var far = arguments[3] === undefined ? 100 : arguments[3];
+    this.fovy = fovy;
+    this.aspect = aspect;
+    this.near = near;
+    this.far = far;
+    this.matrix = new Matrix4();
+    this.lookAt = new Vector3();
+    this.position = new Vector3();
+    this.up = new Vector3();
+    this._zoom = 1;
+  }
+
+  _prototypeProperties(PerspectiveCamera, null, {
+    zoom: {
+      set: function (zoom) {
+        if (zoom < 0) {
+          throw "Zoom should be equal or greater than 0";
+        }
+
+        this._zoom = zoom;
+      },
+      get: function () {
+        return this._zoom;
+      },
+      enumerable: true,
+      configurable: true
+    },
+    updatePerspective: {
+      value: function updatePerspective() {
+        var fovy = 2 * Math.atan(Math.tan(this.fovy * 0.5) / this._zoom);
+        this.matrix.perspective(fovy, this.aspect, this.near, this.far);
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    }
+  });
+
+  return PerspectiveCamera;
+})();"use strict";
+
+var _prototypeProperties = function (child, staticProps, instanceProps) {
+  if (staticProps) Object.defineProperties(child, staticProps);
+  if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
+};
+
 var Camera = (function () {
   function Camera() {
     var fovy = arguments[0] === undefined ? 0.785398 : arguments[0];
@@ -203,10 +305,10 @@ var World = (function () {
   return World;
 })();"use strict";
 
-var dl_i = 0;
+var lightId = 0;
 
 var BaseLight = function BaseLight() {
-  this.index = dl_i++;
+  this.index = lightId++;
   this.type = "light";
   this.color = new Color(1, 1, 1);
 };"use strict";
@@ -253,7 +355,17 @@ var _inherits = function (subClass, superClass) {
   if (superClass) subClass.__proto__ = superClass;
 };
 
+/**
+ * Directional light class
+ *
+ * @class DirectionalLight
+ */
 var DirectionalLight = (function (BaseLight) {
+  /**
+   * Constructor of DirectionalLight
+   *
+   * @method constructor
+   */
   function DirectionalLight() {
     _get(Object.getPrototypeOf(DirectionalLight.prototype), "constructor", this).call(this);
     this.direction = new Vector3(1, 1, 1);
@@ -263,6 +375,14 @@ var DirectionalLight = (function (BaseLight) {
 
   _prototypeProperties(DirectionalLight, null, {
     program: {
+
+      /**
+       * Inject codes to shader to affect light
+       *
+       * @method program
+       * @param vertexProgram
+       * @param fragmentProgram
+       */
       value: function program(vertexProgram, fragmentProgram) {
         var _this = this;
 
@@ -279,7 +399,6 @@ var DirectionalLight = (function (BaseLight) {
           ld: lightDirection,
           c: color
         });
-
       },
       writable: true,
       enumerable: true,
@@ -945,6 +1064,15 @@ var Vector3 = (function () {
   return Vector3;
 })();"use strict";
 
+/**
+ * Circle factory
+ *
+ * @function CircleFactory
+ * @param {Number} [radius=1]
+ * @param {Number} [steps=2]
+ * @returns {Object3D}
+ * @constructor
+ */
 function CircleFactory() {
   var radius = arguments[0] === undefined ? 1 : arguments[0];
   var steps = arguments[1] === undefined ? 20 : arguments[1];
@@ -978,6 +1106,14 @@ function CircleFactory() {
   return circle;
 }"use strict";
 
+/**
+ * Cube factory
+ *
+ * @function CubeFactory
+ * @param {Number} [size=1]
+ * @returns {Object3D}
+ * @constructor
+ */
 function CubeFactory() {
   var size = arguments[0] === undefined ? 1 : arguments[0];
   var cube = new Object3D();
@@ -1034,6 +1170,17 @@ function CubeFactory() {
   return cube;
 }"use strict";
 
+/**
+ * Cylinder factory
+ *
+ * @function CylinderFactory
+ * @param {Number} [height=2]
+ * @param {Number} [radiusTop=1]
+ * @param {Number} [radiusBottom=1]
+ * @param {Number} [steps=20]
+ * @returns {Object3D}
+ * @constructor
+ */
 function CylinderFactory() {
   var height = arguments[0] === undefined ? 2 : arguments[0];
   var radiusTop = arguments[1] === undefined ? 1 : arguments[1];
@@ -1076,6 +1223,16 @@ function CylinderFactory() {
   return cylinder;
 }"use strict";
 
+/**
+ * Sphere factory
+ *
+ * @function SphereFactory
+ * @param {Number} [radius=1]
+ * @param {Number} [latitudeBands=30]
+ * @param {Number} [longitudeBands=30]
+ * @returns {Object3D}
+ * @constructor
+ */
 function SphereFactory() {
   var radius = arguments[0] === undefined ? 1 : arguments[0];
   var latitudeBands = arguments[1] === undefined ? 30 : arguments[1];
@@ -1145,9 +1302,14 @@ var _prototypeProperties = function (child, staticProps, instanceProps) {
   if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
 };
 
-var ob_i = 0;
+var objId = 0;
 
 var Object3D = (function () {
+  /**
+   * Constructor of Object3D
+   *
+   * @method constructor
+   */
   function Object3D() {
     this.color = new Color();
 
@@ -1163,7 +1325,7 @@ var Object3D = (function () {
     this.vertexColor = false;
     this.textureCoords = false;
 
-    this.index = ob_i++;
+    this.index = objId++;
 
     this.buffers = {};
 
@@ -1173,6 +1335,13 @@ var Object3D = (function () {
 
   _prototypeProperties(Object3D, null, {
     getMatrix: {
+
+      /**
+       * Get model view of this object by given camera
+       *
+       * @param camera
+       * @returns {Matrix4}
+       */
       value: function getMatrix(camera) {
         var mvMatrix = new Matrix4();
 
@@ -1195,6 +1364,11 @@ var Object3D = (function () {
   return Object3D;
 })();"use strict";
 
+/**
+ * Renderer base class
+ *
+ * @class Renderer
+ */
 var Renderer = function Renderer() {
   var width = arguments[0] === undefined ? 640 : arguments[0];
   var height = arguments[1] === undefined ? 480 : arguments[1];
@@ -1244,6 +1418,11 @@ var _inherits = function (subClass, superClass) {
   if (superClass) subClass.__proto__ = superClass;
 };
 
+/**
+ * Renderer for WebGL canvaas
+ *
+ * @class WebGLRenderer
+ */
 var WebGLRenderer = (function (Renderer) {
   /**
    * Constructs a new WebGl Renderer
@@ -1257,7 +1436,7 @@ var WebGLRenderer = (function (Renderer) {
     _get(Object.getPrototypeOf(WebGLRenderer.prototype), "constructor", this).call(this, width, height);
 
     this.world = world;
-    this.camera = new Camera();
+    this.camera = new PerspectiveCamera();
 
     this.camera.aspect = this.width / this.height;
     this.camera.updatePerspective();
@@ -1392,18 +1571,37 @@ var _prototypeProperties = function (child, staticProps, instanceProps) {
   if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
 };
 
+/**
+ * Class Attribute for vertex program
+ *
+ * @class Attribute
+ */
 var Attribute = (function () {
+  /**
+   * Constructor of Attribute
+   *
+   * @method constructor
+   * @param {String} type
+   * @param {String} name
+   * @param {ShaderProgrammer} programmer
+   */
   function Attribute(type, name, programmer) {
     this.type = type;
     this.name = name;
 
-    this.onchange = null;
+    this.onupdate = null;
 
     this._porgrammer = programmer;
   }
 
   _prototypeProperties(Attribute, null, {
     create: {
+
+      /**
+       * Allocate location for this attribute
+       *
+       * @method create
+       */
       value: function create() {
         var gl = this._porgrammer.renderer.gl;
         this.location = gl.getAttribLocation(this._porgrammer.program, this.name);
@@ -1413,10 +1611,16 @@ var Attribute = (function () {
       enumerable: true,
       configurable: true
     },
-    change: {
-      value: function change() {
-        if (typeof this.onchange === "function") {
-          this.onchange.apply(this);
+    update: {
+
+      /**
+       * Call update function for this variable
+       *
+       * @method update
+       */
+      value: function update() {
+        if (typeof this.onupdate === "function") {
+          this.onupdate.apply(this);
         }
       },
       writable: true,
@@ -1424,6 +1628,12 @@ var Attribute = (function () {
       configurable: true
     },
     value: {
+
+      /**
+       * Set value for this attribute
+       *
+       * @param value
+       */
       value: function value(value) {
         var gl = this._porgrammer.gl;
 
@@ -1654,14 +1864,14 @@ var ShaderProgrammer = (function () {
             fragmentProgram = this.fragmentProgram;
 
         for (i in vertexProgram._variables) {
-          if (vertexProgram._variables[i].change) {
-            vertexProgram._variables[i].change();
+          if (vertexProgram._variables[i].update) {
+            vertexProgram._variables[i].update();
           }
         }
 
         for (i in fragmentProgram._variables) {
-          if (fragmentProgram._variables[i].change) {
-            fragmentProgram._variables[i].change();
+          if (fragmentProgram._variables[i].update) {
+            fragmentProgram._variables[i].update();
           }
         }
       },
@@ -1882,7 +2092,19 @@ var _prototypeProperties = function (child, staticProps, instanceProps) {
 
 var tmpId = 0;
 
+/**
+ * This class represents a shader program (vertex shader, fragment shader)
+ *
+ * @class Shader
+ */
 var Shader = (function () {
+  /**
+   * Constructor of Shader
+   *
+   * @method constructor
+   * @param type
+   * @param programmer
+   */
   function Shader(type, programmer) {
     this._variables = {};
     this._programmer = programmer;
@@ -1893,6 +2115,12 @@ var Shader = (function () {
 
   _prototypeProperties(Shader, null, {
     init: {
+
+      /**
+       * Initiate variable by allocating location in shader program
+       *
+       * @method init
+       */
       value: function init() {
         for (var i in this._variables) {
           if (typeof this._variables[i].create !== "undefined") {
@@ -1905,13 +2133,23 @@ var Shader = (function () {
       configurable: true
     },
     uniform: {
+
+      /**
+       * Create a uniform in program
+       *
+       * @method uniform
+       * @param type
+       * @param callback
+       * @param name
+       * @returns {Uniform}
+       */
       value: function uniform(type) {
         var _this = this;
         var callback = arguments[1] === undefined ? null : arguments[1];
         var name = arguments[2] === undefined ? "tmp_" + tmpId++ : arguments[2];
         return (function () {
           var uniform = new Uniform(type, name, _this._programmer);
-          uniform.onchange = callback;
+          uniform.onupdate = callback;
           _this._variables[name] = uniform;
           return uniform;
         })();
@@ -1921,13 +2159,23 @@ var Shader = (function () {
       configurable: true
     },
     attribute: {
+
+      /**
+       * Create an attribute in program
+       *
+       * @method attribute
+       * @param type
+       * @param callback
+       * @param name
+       * @returns {Attribute}
+       */
       value: function attribute(type) {
         var _this2 = this;
         var callback = arguments[1] === undefined ? null : arguments[1];
         var name = arguments[2] === undefined ? "tmp_" + tmpId++ : arguments[2];
         return (function () {
           var attribute = new Attribute(type, name, _this2._programmer);
-          attribute.onchange = callback;
+          attribute.onupdate = callback;
           _this2._variables[name] = attribute;
           return attribute;
         })();
@@ -1937,6 +2185,15 @@ var Shader = (function () {
       configurable: true
     },
     varying: {
+
+      /**
+       * Create a varying in shader program
+       *
+       * @method varying
+       * @param type
+       * @param name
+       * @returns {Object}
+       */
       value: function varying(type) {
         var _this3 = this;
         var name = arguments[1] === undefined ? "tmp_" + tmpId++ : arguments[1];
@@ -1951,6 +2208,15 @@ var Shader = (function () {
       configurable: true
     },
     precision: {
+
+      /**
+       * Set a precision in shader program
+       *
+       * @method precision
+       * @param {String} rule
+       * @param {String} type
+       * @returns {Object}
+       */
       value: function precision(rule, type) {
         var name = "tmp_" + tmpId++;
         this._variables[name] = { name: type, type: rule, prefix: "precision" };
@@ -1962,6 +2228,16 @@ var Shader = (function () {
       configurable: true
     },
     bind: {
+
+      /**
+       * Bind a parameter in program. You can access parameters in your code
+       * by using `%` prefix.
+       *
+       * @method bind
+       * @param name
+       * @param value
+       * @returns {Shader}
+       */
       value: function bind(name, value) {
         if (typeof value === "string") {
           value = this.getVariable(value);
@@ -1976,6 +2252,14 @@ var Shader = (function () {
       configurable: true
     },
     code: {
+
+      /**
+       * Inject some code into main context
+       *
+       * @param code
+       * @param params
+       * @returns {Shader}
+       */
       value: function code(code, params) {
         this._code += code;
 
@@ -1992,6 +2276,15 @@ var Shader = (function () {
       configurable: true
     },
     getVariable: {
+
+      /**
+       * Get a variable by given name
+       *
+       * @method getVariable
+       * @throws Error if given variable is not set
+       * @param name
+       * @returns {Object}
+       */
       value: function getVariable(name) {
         if (typeof this._variables[name] !== "undefined") {
           return this._variables[name];
@@ -2004,6 +2297,12 @@ var Shader = (function () {
       configurable: true
     },
     toString: {
+
+      /**
+       * Generates and returns code of shader
+       *
+       * @returns {String}
+       */
       value: function toString() {
         var i,
             variable,
@@ -2053,7 +2352,9 @@ var _prototypeProperties = function (child, staticProps, instanceProps) {
 
 var Uniform = (function () {
   /**
-   * Constructor of unifrom
+   * Constructor of Unifrom
+   *
+   * @method constructor
    * @param type
    * @param name
    * @param programmer
@@ -2062,13 +2363,19 @@ var Uniform = (function () {
     this.type = type;
     this.name = name;
 
-    this.onchange = null;
+    this.onupdate = null;
 
     this._porgrammer = programmer;
   }
 
   _prototypeProperties(Uniform, null, {
     create: {
+
+      /**
+       * Allocate this uniform's location in shader program
+       *
+       * @method create
+       */
       value: function create() {
         this.location = this._porgrammer.renderer.gl.getUniformLocation(this._porgrammer.program, this.name);
       },
@@ -2076,10 +2383,16 @@ var Uniform = (function () {
       enumerable: true,
       configurable: true
     },
-    change: {
-      value: function change() {
-        if (typeof this.onchange === "function") {
-          this.onchange.apply(this);
+    update: {
+
+      /**
+       * Call update function for this variable
+       *
+       * @method update
+       */
+      value: function update() {
+        if (typeof this.onupdate === "function") {
+          this.onupdate.apply(this);
         }
       },
       writable: true,
@@ -2087,6 +2400,13 @@ var Uniform = (function () {
       configurable: true
     },
     value: {
+
+      /**
+       * Set value of this variable
+       *
+       * @method {*} value The value to set
+       * @param value
+       */
       value: function value(value) {
         var gl = this._porgrammer.gl;
 
@@ -2120,13 +2440,14 @@ var Uniform = (function () {
 var Varying = function Varying(type, name) {
   this.type = type;
   this.name = name;
-};
-root.LiThree = {
+};root.LiThree = {
   Renderer: Renderer,
   WebGLRenderer: WebGLRenderer,
   World: World,
   Object3D: Object3D,
-  Camera: Camera,
+  Camera: {
+    Perspective: PerspectiveCamera
+  },
   Color: Color,
   Math: {
     Vector3: Vector3,

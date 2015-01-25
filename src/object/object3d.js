@@ -3,11 +3,16 @@ import Matrix4 from '../math/matrix4.js';
 import Color from '../core/color.js';
 import Common from '../core/common.js';
 
-var ob_i = 0;
+var objId = 0;
 
 export default
 class Object3D {
 
+  /**
+   * Constructor of Object3D
+   *
+   * @method constructor
+   */
   constructor() {
     this.color = new Color();
 
@@ -23,7 +28,7 @@ class Object3D {
     this.vertexColor = false;
     this.textureCoords = false;
 
-    this.index = ob_i++;
+    this.index = objId++;
 
     this.buffers = {};
 
@@ -31,6 +36,12 @@ class Object3D {
     this.darwingFunction = Common.drawingFunctions.ARRAYS;
   }
 
+  /**
+   * Get model view of this object by given camera
+   *
+   * @param camera
+   * @returns {Matrix4}
+   */
   getMatrix(camera) {
     var mvMatrix = new Matrix4();
 
