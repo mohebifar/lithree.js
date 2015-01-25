@@ -15,7 +15,8 @@ class DirectionalLight extends BaseLight {
    * @method constructor
    */
   constructor() {
-    super.constructor();
+    super();
+    this.color = new Color(1, 1, 1);
     this.direction = new Vector3(1, 1, 1);
   }
 
@@ -38,9 +39,7 @@ class DirectionalLight extends BaseLight {
       this.value(_this.color.toArray());
     });
 
-    vertexProgram.code(`
-    float lightWeighting${this.index} = max(dot(transformedNormal, %ld), 0.0);
-    %lw += %c * lightWeighting${this.index};`, {
+    vertexProgram.code(`%lw += %c * max(dot(transformedNormal, %ld), 0.0);`, {
       lw: 'lightWeight',
       ld: lightDirection,
       c: color

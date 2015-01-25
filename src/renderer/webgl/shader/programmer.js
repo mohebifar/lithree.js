@@ -65,15 +65,15 @@ class ShaderProgrammer {
 
     var position = vertexProgram.attribute('vec3', function () {
       this.value(buffers.vertices);
-    });
+    }, 'vPosition');
 
     var pMatrix = vertexProgram.uniform('mat4', function () {
       this.value(renderer.camera.matrix);
-    });
+    }, 'pMatrix');
 
     var mvMatrix = vertexProgram.uniform('mat4', function () {
       this.value(obj.getMatrix(renderer.camera));
-    });
+    }, 'mvMatrix');
 
     vertexProgram.code('gl_Position = %p * %m * vec4(%v, 1.0);', {
       p: pMatrix,
@@ -112,7 +112,9 @@ class ShaderProgrammer {
       }, 'nMatrix');
 
 
-      vertexProgram.code('vec3 transformedNormal = nMatrix * vNormal; %lw = vec3(0.0, 0.0, 0.0);', {
+      vertexProgram.code('vec3 transformedNormal = nMatrix * vNormal;');
+      vertexProgram.code('vec3 normal = normalize(transformedNormal);');
+      vertexProgram.code('%lw = vec3(0.0, 0.0, 0.0);', {
         lw: vertexProgram.varying('vec3', 'lightWeight')
       });
 

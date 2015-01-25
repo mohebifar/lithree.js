@@ -11,7 +11,10 @@ root.LiThree = {
     Vector3: Vector3,
     Matrix4: Matrix4
   },
-  DirectionalLight: DirectionalLight,
+  Light: {
+    Directional: DirectionalLight,
+    Point: PointLight
+  },
   ObjectFactory: {
     Circle: CircleFactory,
     Cylinder: CylinderFactory,

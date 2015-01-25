@@ -32,6 +32,8 @@ class Object3D {
 
     this.buffers = {};
 
+    this.material = new Material();
+
     this.drawingMode = Common.drawingMode.LINE_STRIP;
     this.darwingFunction = Common.drawingFunctions.ARRAYS;
   }

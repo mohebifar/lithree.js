@@ -56,108 +56,6 @@ var _prototypeProperties = function (child, staticProps, instanceProps) {
   if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
 };
 
-var PerspectiveCamera = (function () {
-  function PerspectiveCamera() {
-    var fovy = arguments[0] === undefined ? 0.785398 : arguments[0];
-    var aspect = arguments[1] === undefined ? 1 : arguments[1];
-    var near = arguments[2] === undefined ? 0.1 : arguments[2];
-    var far = arguments[3] === undefined ? 100 : arguments[3];
-    this.fovy = fovy;
-    this.aspect = aspect;
-    this.near = near;
-    this.far = far;
-    this.matrix = new Matrix4();
-    this.lookAt = new Vector3();
-    this.position = new Vector3();
-    this.up = new Vector3();
-    this._zoom = 1;
-  }
-
-  _prototypeProperties(PerspectiveCamera, null, {
-    zoom: {
-      set: function (zoom) {
-        if (zoom < 0) {
-          throw "Zoom should be equal or greater than 0";
-        }
-
-        this._zoom = zoom;
-      },
-      get: function () {
-        return this._zoom;
-      },
-      enumerable: true,
-      configurable: true
-    },
-    updatePerspective: {
-      value: function updatePerspective() {
-        var fovy = 2 * Math.atan(Math.tan(this.fovy * 0.5) / this._zoom);
-        this.matrix.perspective(fovy, this.aspect, this.near, this.far);
-      },
-      writable: true,
-      enumerable: true,
-      configurable: true
-    }
-  });
-
-  return PerspectiveCamera;
-})();"use strict";
-
-var _prototypeProperties = function (child, staticProps, instanceProps) {
-  if (staticProps) Object.defineProperties(child, staticProps);
-  if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-};
-
-var Camera = (function () {
-  function Camera() {
-    var fovy = arguments[0] === undefined ? 0.785398 : arguments[0];
-    var aspect = arguments[1] === undefined ? 1 : arguments[1];
-    var near = arguments[2] === undefined ? 0.1 : arguments[2];
-    var far = arguments[3] === undefined ? 100 : arguments[3];
-    this.fovy = fovy;
-    this.aspect = aspect;
-    this.near = near;
-    this.far = far;
-    this.matrix = new Matrix4();
-    this.lookAt = new Vector3();
-    this.position = new Vector3();
-    this.up = new Vector3();
-    this._zoom = 1;
-  }
-
-  _prototypeProperties(Camera, null, {
-    zoom: {
-      set: function (zoom) {
-        if (zoom < 0) {
-          throw "Zoom should be equal or greater than 0";
-        }
-
-        this._zoom = zoom;
-      },
-      get: function () {
-        return this._zoom;
-      },
-      enumerable: true,
-      configurable: true
-    },
-    updatePerspective: {
-      value: function updatePerspective() {
-        var fovy = 2 * Math.atan(Math.tan(this.fovy * 0.5) / this._zoom);
-        this.matrix.perspective(fovy, this.aspect, this.near, this.far);
-      },
-      writable: true,
-      enumerable: true,
-      configurable: true
-    }
-  });
-
-  return Camera;
-})();"use strict";
-
-var _prototypeProperties = function (child, staticProps, instanceProps) {
-  if (staticProps) Object.defineProperties(child, staticProps);
-  if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-};
-
 var Color = (function () {
   function Color() {
     var r = arguments[0] === undefined ? 1 : arguments[0];
@@ -310,7 +208,7 @@ var lightId = 0;
 var BaseLight = function BaseLight() {
   this.index = lightId++;
   this.type = "light";
-  this.color = new Color(1, 1, 1);
+  console.log(this);
 };"use strict";
 
 var _prototypeProperties = function (child, staticProps, instanceProps) {
@@ -368,6 +266,7 @@ var DirectionalLight = (function (BaseLight) {
    */
   function DirectionalLight() {
     _get(Object.getPrototypeOf(DirectionalLight.prototype), "constructor", this).call(this);
+    this.color = new Color(1, 1, 1);
     this.direction = new Vector3(1, 1, 1);
   }
 
@@ -394,7 +293,7 @@ var DirectionalLight = (function (BaseLight) {
           this.value(_this.color.toArray());
         });
 
-        vertexProgram.code("\n    float lightWeighting" + this.index + " = max(dot(transformedNormal, %ld), 0.0);\n    %lw += %c * lightWeighting" + this.index + ";", {
+        vertexProgram.code("%lw += %c * max(dot(transformedNormal, %ld), 0.0);", {
           lw: "lightWeight",
           ld: lightDirection,
           c: color
@@ -409,11 +308,111 @@ var DirectionalLight = (function (BaseLight) {
   return DirectionalLight;
 })(BaseLight);"use strict";
 
-var dl_i = 0;
+var _prototypeProperties = function (child, staticProps, instanceProps) {
+  if (staticProps) Object.defineProperties(child, staticProps);
+  if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
+};
 
-var BaseLight = function BaseLight() {
-  this.index = dl_i++;
-  this.color = new Color(1, 1, 1);
+var _get = function get(object, property, receiver) {
+  var desc = Object.getOwnPropertyDescriptor(object, property);
+
+  if (desc === undefined) {
+    var parent = Object.getPrototypeOf(object);
+
+    if (parent === null) {
+      return undefined;
+    } else {
+      return get(parent, property, receiver);
+    }
+  } else if ("value" in desc && desc.writable) {
+    return desc.value;
+  } else {
+    var getter = desc.get;
+    if (getter === undefined) {
+      return undefined;
+    }
+    return getter.call(receiver);
+  }
+};
+
+var _inherits = function (subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+  }
+  subClass.prototype = Object.create(superClass && superClass.prototype, {
+    constructor: {
+      value: subClass,
+      enumerable: false,
+      writable: true,
+      configurable: true
+    }
+  });
+  if (superClass) subClass.__proto__ = superClass;
+};
+
+var PointLight = (function (BaseLight) {
+  function PointLight() {
+    _get(Object.getPrototypeOf(PointLight.prototype), "constructor", this).call(this);
+    this.specularColor = new Color(0.8, 0.8, 0.8);
+    this.diffuseColor = new Color(0.8, 0.8, 0.8);
+    this.position = new Vector3(-10, 4, -20);
+  }
+
+  _inherits(PointLight, BaseLight);
+
+  _prototypeProperties(PointLight, null, {
+    program: {
+      value: function program(vertexProgram, fragmentProgram) {
+        var _this = this;
+
+        var specularColor = vertexProgram.uniform("vec3", function () {
+          this.value(_this.specularColor);
+        });
+
+        var diffuseColor = vertexProgram.uniform("vec3", function () {
+          this.value(_this.diffuseColor);
+        });
+
+        var lightPosition = vertexProgram.uniform("vec3", function () {
+          this.value(_this.position);
+        });
+
+        vertexProgram.code("vec3 lightDirection = normalize(%lp - %vp.xyz);\n            float %sw = 0.0;\n\n            if (true) {\n                %sw = pow(max(dot(reflect(-lightDirection, normal), normalize(-%vp.xyz)), 0.0), 30.0);\n            }\n\n            float %dw = max(dot(normal, lightDirection), 0.0);\n            %lw += vec3(1, 1, 1) * %sw + vec3(1, 1, 1) * %dw;", {
+          sc: specularColor,
+          dc: diffuseColor,
+          lp: lightPosition,
+          ld: "lightDirection" + this.index,
+          vp: "vPosition",
+          sw: "specularLightWeighting" + this.index,
+          dw: "diffuseLightWeighting" + this.index,
+          lw: "lightWeight"
+        });
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    }
+  });
+
+  return PointLight;
+})(BaseLight);"use strict";
+
+var Material = function Material() {
+  /**
+   * How shiny this material is
+   *
+   * @property shininess
+   * @type {Number}
+   */
+  this.shininess = 30;
+
+  /**
+   * Does lighting affect this material ?
+   *
+   * @property lighting
+   * @type {boolean}
+   */
+  this.lighting = true;
 };"use strict";
 
 var _prototypeProperties = function (child, staticProps, instanceProps) {
@@ -1329,6 +1328,8 @@ var Object3D = (function () {
 
     this.buffers = {};
 
+    this.material = new Material();
+
     this.drawingMode = Common.drawingMode.LINE_STRIP;
     this.darwingFunction = Common.drawingFunctions.ARRAYS;
   }
@@ -1656,173 +1657,6 @@ var _prototypeProperties = function (child, staticProps, instanceProps) {
   if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
 };
 
-var tmpId = 0;
-
-var Shader = (function () {
-  function Shader(type, programmer) {
-    this._variables = {};
-    this._programmer = programmer;
-    this._parameters = {};
-    this._code = "";
-    this.type = type;
-  }
-
-  _prototypeProperties(Shader, null, {
-    init: {
-      value: function init() {
-        for (var i in this._variables) {
-          if (typeof this._variables[i].create !== "undefined") {
-            this._variables[i].create();
-          }
-        }
-      },
-      writable: true,
-      enumerable: true,
-      configurable: true
-    },
-    uniform: {
-      value: function uniform(type) {
-        var _this = this;
-        var callback = arguments[1] === undefined ? null : arguments[1];
-        var name = arguments[2] === undefined ? "tmp_" + tmpId++ : arguments[2];
-        return (function () {
-          var uniform = new Uniform(type, name, _this._programmer);
-          uniform.onchange = callback;
-          _this._variables[name] = uniform;
-          return uniform;
-        })();
-      },
-      writable: true,
-      enumerable: true,
-      configurable: true
-    },
-    attribute: {
-      value: function attribute(type) {
-        var _this2 = this;
-        var callback = arguments[1] === undefined ? null : arguments[1];
-        var name = arguments[2] === undefined ? "tmp_" + tmpId++ : arguments[2];
-        return (function () {
-          var attribute = new Attribute(type, name, _this2._programmer);
-          attribute.onchange = callback;
-          _this2._variables[name] = attribute;
-          return attribute;
-        })();
-      },
-      writable: true,
-      enumerable: true,
-      configurable: true
-    },
-    varying: {
-      value: function varying(type) {
-        var _this3 = this;
-        var name = arguments[1] === undefined ? "tmp_" + tmpId++ : arguments[1];
-        return (function () {
-          _this3._variables[name] = { name: name, type: type, prefix: "varying" };
-
-          return _this3._variables[name];
-        })();
-      },
-      writable: true,
-      enumerable: true,
-      configurable: true
-    },
-    precision: {
-      value: function precision(rule, type) {
-        var name = "tmp_" + tmpId++;
-        this._variables[name] = { name: type, type: rule, prefix: "precision" };
-
-        return this._variables[name];
-      },
-      writable: true,
-      enumerable: true,
-      configurable: true
-    },
-    bind: {
-      value: function bind(name, value) {
-        if (typeof value === "string") {
-          value = this.getVariable(value);
-        }
-
-        this._parameters[name] = value;
-
-        return this;
-      },
-      writable: true,
-      enumerable: true,
-      configurable: true
-    },
-    code: {
-      value: function code(code, params) {
-        this._code += code;
-
-        if (typeof params !== "undefined") {
-          for (var i in params) {
-            this.bind(i, params[i]);
-          }
-        }
-
-        return this;
-      },
-      writable: true,
-      enumerable: true,
-      configurable: true
-    },
-    getVariable: {
-      value: function getVariable(name) {
-        if (typeof this._variables[name] !== "undefined") {
-          return this._variables[name];
-        } else {
-          throw "The variable " + name + " is not set.";
-        }
-      },
-      writable: true,
-      enumerable: true,
-      configurable: true
-    },
-    toString: {
-      value: function toString() {
-        var i,
-            variable,
-            code = "";
-
-        for (i in this._variables) {
-          variable = this._variables[i];
-
-          if (variable instanceof Uniform) {
-            code += "uniform " + variable.type + " " + variable.name + ";";
-          } else if (variable instanceof Attribute) {
-            code += "attribute " + variable.type + " " + variable.name + ";";
-          } else if (typeof variable === "object") {
-            code += "" + variable.prefix + " " + variable.type + " " + variable.name + ";";
-          }
-        }
-
-        var mainCode = this._code;
-
-        for (i in this._parameters) {
-          variable = this._parameters[i];
-
-          mainCode = mainCode.replace(new RegExp("%" + i, "gm"), variable.name);
-        }
-
-        code += "void main() { " + mainCode + " }";
-
-        return code;
-      },
-      writable: true,
-      enumerable: true,
-      configurable: true
-    }
-  });
-
-  return Shader;
-})();"use strict";
-
-var _prototypeProperties = function (child, staticProps, instanceProps) {
-  if (staticProps) Object.defineProperties(child, staticProps);
-  if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-};
-
 /**
  * This class is used to create and compile a glsl program.
  *
@@ -1894,15 +1728,15 @@ var ShaderProgrammer = (function () {
 
         var position = vertexProgram.attribute("vec3", function () {
           this.value(buffers.vertices);
-        });
+        }, "vPosition");
 
         var pMatrix = vertexProgram.uniform("mat4", function () {
           this.value(renderer.camera.matrix);
-        });
+        }, "pMatrix");
 
         var mvMatrix = vertexProgram.uniform("mat4", function () {
           this.value(obj.getMatrix(renderer.camera));
-        });
+        }, "mvMatrix");
 
         vertexProgram.code("gl_Position = %p * %m * vec4(%v, 1.0);", {
           p: pMatrix,
@@ -1946,7 +1780,9 @@ var ShaderProgrammer = (function () {
           }, "nMatrix");
 
 
-          vertexProgram.code("vec3 transformedNormal = nMatrix * vNormal; %lw = vec3(0.0, 0.0, 0.0);", {
+          vertexProgram.code("vec3 transformedNormal = nMatrix * vNormal;");
+          vertexProgram.code("vec3 normal = normalize(transformedNormal);");
+          vertexProgram.code("%lw = vec3(0.0, 0.0, 0.0);", {
             lw: vertexProgram.varying("vec3", "lightWeight")
           });
 
@@ -2054,36 +1890,6 @@ var ShaderProgrammer = (function () {
 
   return ShaderProgrammer;
 })();"use strict";
-
-var ShaderChunks = {
-  vertex: {
-    pars: {
-      "default": "attribute vec3 aVertexNormal; attribute vec3 aVertexPosition; uniform mat4 uMVMatrix; uniform mat4 uPMatrix; uniform mat3 uNMatrix;",
-      directionalLight: function (index) {
-        return "varying vec3 vLightWeighting; uniform vec3 uLightingDirection" + index + "; uniform vec3 uDirectionalColor" + index + ";";
-      }
-
-    },
-    main: {
-      "default": "gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);",
-      directionalLight: function (index) {
-        return "vec3 transformedNormal = uNMatrix * aVertexNormal; float directionalLightWeighting" + index + " = max(dot(transformedNormal, uLightingDirection" + index + "), 0.0); vLightWeighting = uDirectionalColor" + index + " * directionalLightWeighting" + index + ";";
-      }
-
-    }
-  },
-  fragment: {
-    pars: {
-      "default": "precision mediump float;",
-      color: "uniform vec3 uvColor;",
-      directionalLight: "varying vec3 vLightWeighting;"
-    },
-    main: {
-      color: "",
-      directionalLight: "gl_FragColor = vec4(vLightWeighting + uvColor, 1.0);"
-    }
-  }
-};"use strict";
 
 var _prototypeProperties = function (child, staticProps, instanceProps) {
   if (staticProps) Object.defineProperties(child, staticProps);
@@ -2240,7 +2046,9 @@ var Shader = (function () {
        */
       value: function bind(name, value) {
         if (typeof value === "string") {
-          value = this.getVariable(value);
+          value = {
+            name: value
+          };
         }
 
         this._parameters[name] = value;
@@ -2261,7 +2069,7 @@ var Shader = (function () {
        * @returns {Shader}
        */
       value: function code(code, params) {
-        this._code += code;
+        this._code += code + "\n";
 
         if (typeof params !== "undefined") {
           for (var i in params) {
@@ -2312,11 +2120,11 @@ var Shader = (function () {
           variable = this._variables[i];
 
           if (variable instanceof Uniform) {
-            code += "uniform " + variable.type + " " + variable.name + ";";
+            code += "uniform " + variable.type + " " + variable.name + ";\n";
           } else if (variable instanceof Attribute) {
-            code += "attribute " + variable.type + " " + variable.name + ";";
+            code += "attribute " + variable.type + " " + variable.name + ";\n";
           } else if (typeof variable === "object") {
-            code += "" + variable.prefix + " " + variable.type + " " + variable.name + ";";
+            code += "" + variable.prefix + " " + variable.type + " " + variable.name + ";\n";
           }
         }
 
@@ -2328,7 +2136,7 @@ var Shader = (function () {
           mainCode = mainCode.replace(new RegExp("%" + i, "gm"), variable.name);
         }
 
-        code += "void main() { " + mainCode + " }";
+        code += "void main() {\n" + mainCode + "\n}";
 
         return code;
       },
@@ -2340,10 +2148,6 @@ var Shader = (function () {
 
   return Shader;
 })();"use strict";
-
-/**
- * Created by mohamad on 1/25/15.
- */"use strict";
 
 var _prototypeProperties = function (child, staticProps, instanceProps) {
   if (staticProps) Object.defineProperties(child, staticProps);
@@ -2435,12 +2239,7 @@ var Uniform = (function () {
   });
 
   return Uniform;
-})();"use strict";
-
-var Varying = function Varying(type, name) {
-  this.type = type;
-  this.name = name;
-};root.LiThree = {
+})();root.LiThree = {
   Renderer: Renderer,
   WebGLRenderer: WebGLRenderer,
   World: World,
@@ -2453,7 +2252,10 @@ var Varying = function Varying(type, name) {
     Vector3: Vector3,
     Matrix4: Matrix4
   },
-  DirectionalLight: DirectionalLight,
+  Light: {
+    Directional: DirectionalLight,
+    Point: PointLight
+  },
   ObjectFactory: {
     Circle: CircleFactory,
     Cylinder: CylinderFactory,

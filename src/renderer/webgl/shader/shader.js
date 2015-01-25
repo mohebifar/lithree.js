@@ -111,7 +111,9 @@ class Shader {
    */
   bind(name, value) {
     if(typeof value === 'string') {
-      value = this.getVariable(value);
+      value = {
+        name: value
+      };
     }
 
     this._parameters[name] = value;
@@ -127,7 +129,7 @@ class Shader {
    * @returns {Shader}
    */
   code(code, params) {
-    this._code += code;
+    this._code += code +'\n';
 
     if (typeof params !== 'undefined') {
       for (var i in params) {
@@ -166,11 +168,11 @@ class Shader {
       variable = this._variables[i];
 
       if (variable instanceof Uniform) {
-        code += `uniform ${variable.type} ${variable.name};`;
+        code += `uniform ${variable.type} ${variable.name};\n`;
       } else if (variable instanceof Attribute) {
-        code += `attribute ${variable.type} ${variable.name};`;
+        code += `attribute ${variable.type} ${variable.name};\n`;
       } else if (typeof variable === 'object') {
-        code += `${variable.prefix} ${variable.type} ${variable.name};`;
+        code += `${variable.prefix} ${variable.type} ${variable.name};\n`;
       }
     }
 
@@ -182,7 +184,7 @@ class Shader {
       mainCode = mainCode.replace(new RegExp(`\%${i}`, 'gm'), variable.name);
     }
 
-    code += `void main() { ${mainCode} }`;
+    code += `void main() {\n${mainCode}\n}`;
 
     return code;
   }
