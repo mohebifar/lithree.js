@@ -7,13 +7,13 @@ Usage
 Make a world
 
 ```js
-var world = new MoGl.World();
+var world = new LiThree.World();
 ```
 
 Create an object using object factories
 
 ```js
-var sphere = MoGl.ObjectFactory.Sphere(1, 20, 20);
+var sphere = LiThree.ObjectFactory.Sphere(1, 20, 20);
 ```
 
 Add object to the world
@@ -25,7 +25,7 @@ world.add(sphere);
 Create a renderer
 
 ```js
-var renderer = new MoGl.WebGLRenderer(640, 480, world);
+var renderer = new LiThree.WebGLRenderer(640, 480, world);
 renderer.initShapes();
 ```
 
