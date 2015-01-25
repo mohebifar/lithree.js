@@ -58,9 +58,12 @@ grunt.initConfig({
     allFiles: [
       'src/**/*.js', '!src/intro.js', '!src/outro.js'
     ]
+  },
+  clean: {
+    tmp: ['.tmp']
   }
 });
 
-grunt.registerTask('default', ['6to5', 'concat']);
+grunt.registerTask('default', ['clean', '6to5', 'concat']);
 
 grunt.registerTask('build', ['default', 'uglify']);
