@@ -211,6 +211,11 @@ var BaseLight = function BaseLight() {
   this.color = new Color(1, 1, 1);
 };"use strict";
 
+var _prototypeProperties = function (child, staticProps, instanceProps) {
+  if (staticProps) Object.defineProperties(child, staticProps);
+  if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
+};
+
 var _get = function get(object, property, receiver) {
   var desc = Object.getOwnPropertyDescriptor(object, property);
 
@@ -255,6 +260,32 @@ var DirectionalLight = (function (BaseLight) {
   }
 
   _inherits(DirectionalLight, BaseLight);
+
+  _prototypeProperties(DirectionalLight, null, {
+    program: {
+      value: function program(vertexProgram, fragmentProgram) {
+        var _this = this;
+
+        var lightDirection = vertexProgram.uniform("vec3", function () {
+          this.value(_this.direction);
+        });
+
+        var color = vertexProgram.uniform("vec3", function () {
+          this.value(_this.color.toArray());
+        });
+
+        vertexProgram.code("\n    float lightWeighting" + this.index + " = max(dot(transformedNormal, %ld), 0.0);\n    %lw += %c * lightWeighting" + this.index + ";", {
+          lw: "lightWeight",
+          ld: lightDirection,
+          c: color
+        });
+
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    }
+  });
 
   return DirectionalLight;
 })(BaseLight);"use strict";
@@ -1361,6 +1392,226 @@ var _prototypeProperties = function (child, staticProps, instanceProps) {
   if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
 };
 
+var Attribute = (function () {
+  function Attribute(type, name, programmer) {
+    this.type = type;
+    this.name = name;
+
+    this.onchange = null;
+
+    this._porgrammer = programmer;
+  }
+
+  _prototypeProperties(Attribute, null, {
+    create: {
+      value: function create() {
+        var gl = this._porgrammer.renderer.gl;
+        this.location = gl.getAttribLocation(this._porgrammer.program, this.name);
+        gl.enableVertexAttribArray(this.location);
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    change: {
+      value: function change() {
+        if (typeof this.onchange === "function") {
+          this.onchange.apply(this);
+        }
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    value: {
+      value: function value(value) {
+        var gl = this._porgrammer.gl;
+
+        if (value instanceof WebGLBuffer) {
+          gl.bindBuffer(gl.ARRAY_BUFFER, value);
+          gl.vertexAttribPointer(this.location, value.itemSize, gl.FLOAT, false, 0, 0);
+        }
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    }
+  });
+
+  return Attribute;
+})();"use strict";
+
+var _prototypeProperties = function (child, staticProps, instanceProps) {
+  if (staticProps) Object.defineProperties(child, staticProps);
+  if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
+};
+
+var tmpId = 0;
+
+var ShaderProgram = (function () {
+  function ShaderProgram(type, programmer) {
+    this._variables = {};
+    this._programmer = programmer;
+    this._parameters = {};
+    this._code = "";
+    this.type = type;
+  }
+
+  _prototypeProperties(ShaderProgram, null, {
+    init: {
+      value: function init() {
+        for (var i in this._variables) {
+          if (typeof this._variables[i].create !== "undefined") {
+            this._variables[i].create();
+          }
+        }
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    uniform: {
+      value: function uniform(type) {
+        var _this = this;
+        var callback = arguments[1] === undefined ? null : arguments[1];
+        var name = arguments[2] === undefined ? "tmp_" + tmpId++ : arguments[2];
+        return (function () {
+          var uniform = new Uniform(type, name, _this._programmer);
+          uniform.onchange = callback;
+          _this._variables[name] = uniform;
+          return uniform;
+        })();
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    attribute: {
+      value: function attribute(type) {
+        var _this2 = this;
+        var callback = arguments[1] === undefined ? null : arguments[1];
+        var name = arguments[2] === undefined ? "tmp_" + tmpId++ : arguments[2];
+        return (function () {
+          var attribute = new Attribute(type, name, _this2._programmer);
+          attribute.onchange = callback;
+          _this2._variables[name] = attribute;
+          return attribute;
+        })();
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    varying: {
+      value: function varying(type) {
+        var _this3 = this;
+        var name = arguments[1] === undefined ? "tmp_" + tmpId++ : arguments[1];
+        return (function () {
+          _this3._variables[name] = { name: name, type: type, prefix: "varying" };
+
+          return _this3._variables[name];
+        })();
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    precision: {
+      value: function precision(rule, type) {
+        var name = "tmp_" + tmpId++;
+        this._variables[name] = { name: type, type: rule, prefix: "precision" };
+
+        return this._variables[name];
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    bind: {
+      value: function bind(name, value) {
+        if (typeof value === "string") {
+          value = this.getVariable(value);
+        }
+
+        this._parameters[name] = value;
+
+        return this;
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    code: {
+      value: function code(code, params) {
+        this._code += code;
+
+        if (typeof params !== "undefined") {
+          for (var i in params) {
+            this.bind(i, params[i]);
+          }
+        }
+
+        return this;
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    getVariable: {
+      value: function getVariable(name) {
+        if (typeof this._variables[name] !== "undefined") {
+          return this._variables[name];
+        } else {
+          throw "The variable " + name + " is not set.";
+        }
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    toString: {
+      value: function toString() {
+        var i,
+            code = "";
+
+        for (i in this._variables) {
+          var variable = this._variables[i];
+
+          if (variable instanceof Uniform) {
+            code += "uniform " + variable.type + " " + variable.name + ";";
+          } else if (variable instanceof Attribute) {
+            code += "attribute " + variable.type + " " + variable.name + ";";
+          } else if (typeof variable === "object") {
+            code += "" + variable.prefix + " " + variable.type + " " + variable.name + ";";
+          }
+        }
+
+        var mainCode = this._code;
+
+        for (i in this._parameters) {
+          var variable = this._parameters[i];
+
+          mainCode = mainCode.replace(new RegExp("%" + i, "gm"), variable.name);
+        }
+
+        code += "void main() { " + mainCode + " }";
+
+        return code;
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    }
+  });
+
+  return ShaderProgram;
+})();"use strict";
+
+var _prototypeProperties = function (child, staticProps, instanceProps) {
+  if (staticProps) Object.defineProperties(child, staticProps);
+  if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
+};
+
 /**
  * This class is used to create and compile a glsl program.
  *
@@ -1373,89 +1624,118 @@ var ShaderProgrammer = (function () {
     this.uniforms = {};
     this.attributes = {};
 
+    this.vertexProgram = new ShaderProgram("vertex", this);
+    this.fragmentProgram = new ShaderProgram("fragment", this);
+
     this.program = false;
     this.gl = renderer.gl;
+
+    this.initLighting();
+    this.initPositionCamera();
     this.create();
   }
 
   _prototypeProperties(ShaderProgrammer, null, {
     vertex: {
-      value: function vertex() {
-        var pars = "",
-            main = "";
-
-        pars += ShaderChunks.vertex.pars["default"];
-
-        main += ShaderChunks.vertex.main["default"];
-
-        for (var i in this.renderer.world.lights) {
-          var light = this.renderer.world.lights[i];
-          var _i = light.index;
-
-          pars += ShaderChunks.vertex.pars.directionalLight(_i);
-          main += ShaderChunks.vertex.main.directionalLight(_i);
-        }
-
-        var program = "" + pars + " void main() { " + main + " }";
-        return this.compile(program, WebGLRenderingContext.VERTEX_SHADER);
-      },
-      writable: true,
-      enumerable: true,
-      configurable: true
-    },
-    fragment: {
-      value: function fragment() {
-        var pars = "",
-            main = "";
-
-        pars += ShaderChunks.fragment.pars["default"];
-        pars += ShaderChunks.fragment.pars.color;
-
-        main += ShaderChunks.fragment.main.color;
-
-        if (this.renderer.world.lights.length > 0) {
-          pars += ShaderChunks.fragment.pars.directionalLight;
-          main += ShaderChunks.fragment.main.directionalLight;
-        }
-
-        var program = "" + pars + " void main() { " + main + " }";
-        return this.compile(program, WebGLRenderingContext.FRAGMENT_SHADER);
-      },
+      value: function vertex() {},
       writable: true,
       enumerable: true,
       configurable: true
     },
     assignValues: {
       value: function assignValues() {
-        var obj = this.object;
-        var buffers = obj.buffers;
+        var obj = this.object,
+            buffers = obj.buffers,
+            vertexProgram = this.vertexProgram,
+            fragmentProgram = this.fragmentProgram;
 
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffers.vertices);
-        this.attributeValue("aVertexPosition", buffers.vertices);
-
-        try {
-          this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffers.normals);
-          this.attributeValue("aVertexNormal", buffers.normals);
-        } catch (err) {}
-
-        var mvMatrix = obj.getMatrix(this.renderer.camera);
-
-        // Set Matrix Uniform
-        this.uniformValue("uPMatrix", this.renderer.camera.matrix.toArray());
-        this.uniformValue("uMVMatrix", obj.getMatrix(this.renderer.camera).toArray());
-        this.uniformValue("uvColor", obj.color.toArray());
-
-        for (var i in this.renderer.world.lights) {
-          var light = this.renderer.world.lights[i];
-          var _i = light.index;
-
-          this.uniformValue("uLightingDirection" + _i, light.direction.toArray());
-          this.uniformValue("uDirectionalColor" + _i, light.color.toArray());
+        for (var i in vertexProgram._variables) {
+          if (vertexProgram._variables[i].change) {
+            vertexProgram._variables[i].change();
+          }
         }
 
-        var normalMatrix = mvMatrix.toInverseMat3().transpose();
+        for (var i in fragmentProgram._variables) {
+          if (fragmentProgram._variables[i].change) {
+            fragmentProgram._variables[i].change();
+          }
+        }
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    initPositionCamera: {
+      value: function initPositionCamera() {
+        var obj = this.object,
+            buffers = obj.buffers,
+            vertexProgram = this.vertexProgram,
+            renderer = this.renderer;
 
-        this.uniformValue("uNMatrix", normalMatrix.toArray());
+        var position = vertexProgram.attribute("vec3", function () {
+          this.value(buffers.vertices);
+        });
+
+        var pMatrix = vertexProgram.uniform("mat4", function () {
+          this.value(renderer.camera.matrix);
+        });
+
+        var mvMatrix = vertexProgram.uniform("mat4", function () {
+          this.value(obj.getMatrix(renderer.camera));
+        });
+
+        vertexProgram.code("gl_Position = %p * %m * vec4(%v, 1.0);", {
+          p: pMatrix,
+          m: mvMatrix,
+          v: position
+        });
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    initLighting: {
+      value: function initLighting() {
+        var obj = this.object,
+            vertexProgram = this.vertexProgram,
+            fragmentProgram = this.fragmentProgram,
+            world = this.renderer.world;
+
+        fragmentProgram.precision("mediump", "float");
+
+        var color = fragmentProgram.uniform("vec3", function () {
+          this.value(obj.color.toArray());
+        }, "vColor");
+
+        if (world.lights.length > 0) {
+          vertexProgram.attribute("vec3", function () {
+            this.value(obj.buffers.normals);
+          }, "vNormal");
+
+          vertexProgram.uniform("mat3", function () {
+            var mvMatrix = obj.getMatrix(renderer.camera);
+            var nMatrix = mvMatrix.toInverseMat3().transpose();
+            this.value(nMatrix);
+          }, "nMatrix");
+
+
+          vertexProgram.code("vec3 transformedNormal = nMatrix * vNormal; %lw = vec3(0.0, 0.0, 0.0);", {
+            lw: vertexProgram.varying("vec3", "lightWeight")
+          });
+
+          for (var i in world.lights) {
+            world.lights[i].program(vertexProgram, fragmentProgram);
+          }
+
+          fragmentProgram.code("gl_FragColor = vec4(%lw + %c, 1.0);", {
+            c: color,
+            lw: fragmentProgram.varying("vec3", "lightWeight")
+          });
+        } else {
+          fragmentProgram.code("gl_FragColor = vec4(%c, 1.0);", {
+            c: color
+          });
+        }
       },
       writable: true,
       enumerable: true,
@@ -1490,8 +1770,6 @@ var ShaderProgrammer = (function () {
         if (this.attributes[name] === -1) {
           throw "Attribute " + name + " cannot be located";
         }
-
-        this.gl.enableVertexAttribArray(this.attributes[name]);
       },
       writable: true,
       enumerable: true,
@@ -1605,8 +1883,9 @@ var ShaderProgrammer = (function () {
         var gl = this.gl;
         var program = gl.createProgram();
 
-        gl.attachShader(program, this.vertex());
-        gl.attachShader(program, this.fragment());
+        gl.attachShader(program, this.compile(this.vertexProgram.toString(), gl.VERTEX_SHADER));
+        gl.attachShader(program, this.compile(this.fragmentProgram.toString(), gl.FRAGMENT_SHADER));
+
         gl.linkProgram(program);
 
         var success = gl.getProgramParameter(program, gl.LINK_STATUS);
@@ -1618,6 +1897,8 @@ var ShaderProgrammer = (function () {
 
         this.program = program;
 
+        this.vertexProgram.init();
+        this.fragmentProgram.init();
         return program;
       },
       writable: true,
@@ -1657,6 +1938,80 @@ var ShaderChunks = {
       directionalLight: "gl_FragColor = vec4(vLightWeighting + uvColor, 1.0);"
     }
   }
+};"use strict";
+
+/**
+ * Created by mohamad on 1/25/15.
+ */"use strict";
+
+var _prototypeProperties = function (child, staticProps, instanceProps) {
+  if (staticProps) Object.defineProperties(child, staticProps);
+  if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
+};
+
+var Uniform = (function () {
+  function Uniform(type, name, programmer) {
+    this.type = type;
+    this.name = name;
+
+    this.onchange = null;
+
+    this._porgrammer = programmer;
+  }
+
+  _prototypeProperties(Uniform, null, {
+    create: {
+      value: function create() {
+        this.location = this._porgrammer.renderer.gl.getUniformLocation(this._porgrammer.program, this.name);
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    change: {
+      value: function change() {
+        if (typeof this.onchange === "function") {
+          this.onchange.apply(this);
+        }
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    value: {
+      value: function value(value) {
+        var gl = this._porgrammer.gl;
+
+        if (value instanceof Vector3) {
+          gl.uniform3fv(this.location, value.toArray());
+        } else if (value instanceof Matrix4) {
+          gl.uniformMatrix4fv(this.location, false, value.toArray());
+        } else if (value instanceof Matrix3) {
+          gl.uniformMatrix3fv(this.location, false, value.toArray());
+        } else if (typeof value === "object") {
+          if (value.length === 4) {
+            gl.uniform4fv(this.location, value);
+          } else if (value.length === 3) {
+            gl.uniform3fv(this.location, value);
+          } else if (value.length === 9) {
+            gl.uniformMatrix3fv(this.location, false, value);
+          } else if (value.length === 16) {
+            gl.uniformMatrix4fv(this.location, false, value);
+          }
+        }
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    }
+  });
+
+  return Uniform;
+})();"use strict";
+
+var Varying = function Varying(type, name) {
+  this.type = type;
+  this.name = name;
 };
 root.LiThree = {
   Renderer: Renderer,
