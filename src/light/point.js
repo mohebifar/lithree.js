@@ -1,11 +1,14 @@
+import Color from '../core/color.js';
+import Vector3 from '../math/vector3.js';
+import BaseLight from 'baselight.js';
 
 export default
 class PointLight extends BaseLight {
 
   constructor() {
     super();
-    this.specularColor = new Color(.8, .8, .8);
-    this.diffuseColor = new Color(.8, .8, .8);
+    this.specularColor = new Color(0.8, 0.8, 0.8);
+    this.diffuseColor = new Color(0.8, 0.8, 0.8);
     this.position = new Vector3(-10, 4, -20);
   }
 
@@ -28,7 +31,7 @@ class PointLight extends BaseLight {
             float %sw = 0.0;
 
             if (true) {
-                %sw = pow(max(dot(reflect(-lightDirection, normal), normalize(-%vp.xyz)), 0.0), 30.0);
+                %sw = pow(max(dot(reflect(-lightDirection, normal), normalize(-%vp.xyz)), 0.0), 39.0);
             }
 
             float %dw = max(dot(normal, lightDirection), 0.0);

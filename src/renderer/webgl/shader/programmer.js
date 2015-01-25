@@ -168,7 +168,7 @@ class ShaderProgrammer {
 
     if (!success) {
       // Something went wrong during compilation; get the error
-      throw "Could not compile shader:" + gl.getShaderInfoLog(shader);
+      throw 'Could not compile shader:\n' + gl.getShaderInfoLog(shader) + '\n' + source;
     }
 
     return shader;

@@ -1,3 +1,4 @@
+import Color from '../core/color.js';
 import Vector3 from '../math/vector3.js';
 import BaseLight from 'baselight.js';
 

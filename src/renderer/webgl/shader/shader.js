@@ -21,7 +21,6 @@ class Shader {
   constructor(type, programmer) {
     this._variables = {};
     this._programmer = programmer;
-    this._parameters = {};
     this._code = '';
     this.type = type;
   }
@@ -101,27 +100,6 @@ class Shader {
   }
 
   /**
-   * Bind a parameter in program. You can access parameters in your code
-   * by using `%` prefix.
-   *
-   * @method bind
-   * @param name
-   * @param value
-   * @returns {Shader}
-   */
-  bind(name, value) {
-    if(typeof value === 'string') {
-      value = {
-        name: value
-      };
-    }
-
-    this._parameters[name] = value;
-
-    return this;
-  }
-
-  /**
    * Inject some code into main context
    *
    * @param code
@@ -129,13 +107,16 @@ class Shader {
    * @returns {Shader}
    */
   code(code, params) {
-    this._code += code +'\n';
+    var variable;
 
     if (typeof params !== 'undefined') {
       for (var i in params) {
-        this.bind(i, params[i]);
+        variable = typeof params[i] === 'object' ? params[i].name : params[i];
+        code = code.replace(new RegExp(`\%${i}`, 'gm'), variable);
       }
     }
+
+    this._code += code +'\n';
 
     return this;
   }
@@ -176,15 +157,7 @@ class Shader {
       }
     }
 
-    var mainCode = this._code;
-
-    for (i in this._parameters) {
-      variable = this._parameters[i];
-
-      mainCode = mainCode.replace(new RegExp(`\%${i}`, 'gm'), variable.name);
-    }
-
-    code += `void main() {\n${mainCode}\n}`;
+    code += `void main() {\n${this._code}\n}`;
 
     return code;
   }

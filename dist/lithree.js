@@ -377,7 +377,7 @@ var PointLight = (function (BaseLight) {
           this.value(_this.position);
         });
 
-        vertexProgram.code("vec3 lightDirection = normalize(%lp - %vp.xyz);\n            float %sw = 0.0;\n\n            if (true) {\n                %sw = pow(max(dot(reflect(-lightDirection, normal), normalize(-%vp.xyz)), 0.0), 30.0);\n            }\n\n            float %dw = max(dot(normal, lightDirection), 0.0);\n            %lw += vec3(1, 1, 1) * %sw + vec3(1, 1, 1) * %dw;", {
+        vertexProgram.code("vec3 lightDirection = normalize(%lp - %vp.xyz);\n            float %sw = 0.0;\n\n            if (true) {\n                %sw = pow(max(dot(reflect(-lightDirection, normal), normalize(-%vp.xyz)), 0.0), 39.0);\n            }\n\n            float %dw = max(dot(normal, lightDirection), 0.0);\n            %lw += vec3(1, 1, 1) * %sw + vec3(1, 1, 1) * %dw;", {
           sc: specularColor,
           dc: diffuseColor,
           lp: lightPosition,
@@ -1844,7 +1844,7 @@ var ShaderProgrammer = (function () {
 
         if (!success) {
           // Something went wrong during compilation; get the error
-          throw "Could not compile shader:" + gl.getShaderInfoLog(shader);
+          throw "Could not compile shader:\n" + gl.getShaderInfoLog(shader) + "\n" + source;
         }
 
         return shader;
@@ -1914,7 +1914,6 @@ var Shader = (function () {
   function Shader(type, programmer) {
     this._variables = {};
     this._programmer = programmer;
-    this._parameters = {};
     this._code = "";
     this.type = type;
   }
@@ -2033,32 +2032,6 @@ var Shader = (function () {
       enumerable: true,
       configurable: true
     },
-    bind: {
-
-      /**
-       * Bind a parameter in program. You can access parameters in your code
-       * by using `%` prefix.
-       *
-       * @method bind
-       * @param name
-       * @param value
-       * @returns {Shader}
-       */
-      value: function bind(name, value) {
-        if (typeof value === "string") {
-          value = {
-            name: value
-          };
-        }
-
-        this._parameters[name] = value;
-
-        return this;
-      },
-      writable: true,
-      enumerable: true,
-      configurable: true
-    },
     code: {
 
       /**
@@ -2069,13 +2042,16 @@ var Shader = (function () {
        * @returns {Shader}
        */
       value: function code(code, params) {
-        this._code += code + "\n";
+        var variable;
 
         if (typeof params !== "undefined") {
           for (var i in params) {
-            this.bind(i, params[i]);
+            variable = typeof params[i] === "object" ? params[i].name : params[i];
+            code = code.replace(new RegExp("%" + i, "gm"), variable);
           }
         }
+
+        this._code += code + "\n";
 
         return this;
       },
@@ -2128,15 +2104,7 @@ var Shader = (function () {
           }
         }
 
-        var mainCode = this._code;
-
-        for (i in this._parameters) {
-          variable = this._parameters[i];
-
-          mainCode = mainCode.replace(new RegExp("%" + i, "gm"), variable.name);
-        }
-
-        code += "void main() {\n" + mainCode + "\n}";
+        code += "void main() {\n" + this._code + "\n}";
 
         return code;
       },
