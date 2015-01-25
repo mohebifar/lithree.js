@@ -4,7 +4,7 @@ import Uniform from 'uniform.js';
 var tmpId = 0;
 
 export default
-class ShaderProgram {
+class Shader {
   constructor(type, programmer) {
     this._variables = {};
     this._programmer = programmer;
@@ -79,10 +79,10 @@ class ShaderProgram {
   }
 
   toString() {
-    var i, code = '';
+    var i, variable, code = '';
 
     for (i in this._variables) {
-      var variable = this._variables[i];
+      variable = this._variables[i];
 
       if (variable instanceof Uniform) {
         code += `uniform ${variable.type} ${variable.name};`;
@@ -96,7 +96,7 @@ class ShaderProgram {
     var mainCode = this._code;
 
     for (i in this._parameters) {
-      var variable = this._parameters[i];
+      variable = this._parameters[i];
 
       mainCode = mainCode.replace(new RegExp(`\%${i}`, 'gm'), variable.name);
     }

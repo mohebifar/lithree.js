@@ -1,5 +1,4 @@
-import ShaderChunks from 'shader-chunk.js';
-import ShaderProgram from 'program.js';
+import Shader from 'shader.js';
 
 /**
  * This class is used to create and compile a glsl program.
@@ -9,14 +8,18 @@ import ShaderProgram from 'program.js';
 export default
 class ShaderProgrammer {
 
+  /**
+   * Shader Programmer Constructor
+   *
+   * @param renderer
+   * @param object
+   */
   constructor(renderer, object) {
     this.object = object;
     this.renderer = renderer;
-    this.uniforms = {};
-    this.attributes = {};
 
-    this.vertexProgram = new ShaderProgram('vertex', this);
-    this.fragmentProgram = new ShaderProgram('fragment', this);
+    this.vertexProgram = new Shader('vertex', this);
+    this.fragmentProgram = new Shader('fragment', this);
 
     this.program = false;
     this.gl = renderer.gl;
@@ -26,31 +29,34 @@ class ShaderProgrammer {
     this.create();
   }
 
-  vertex() {
-
-  }
-
+  /**
+   * Update program values
+   *
+   * @method assignValues
+   */
   assignValues() {
-    var obj = this.object,
-      buffers = obj.buffers,
+    var i,
       vertexProgram = this.vertexProgram,
       fragmentProgram = this.fragmentProgram;
 
-    for (var i in vertexProgram._variables) {
+    for (i in vertexProgram._variables) {
       if (vertexProgram._variables[i].change) {
-
         vertexProgram._variables[i].change();
       }
     }
 
-    for (var i in fragmentProgram._variables) {
+    for (i in fragmentProgram._variables) {
       if (fragmentProgram._variables[i].change) {
-
         fragmentProgram._variables[i].change();
       }
     }
   }
 
+  /**
+   * Initiate position and camera shader
+   *
+   * @method initPositionCamera
+   */
   initPositionCamera() {
     var obj = this.object,
       buffers = obj.buffers,
@@ -76,11 +82,17 @@ class ShaderProgrammer {
     });
   }
 
+  /**
+   * Initiate lighting program
+   *
+   * @method initLighting
+   */
   initLighting() {
     var obj = this.object,
       vertexProgram = this.vertexProgram,
       fragmentProgram = this.fragmentProgram,
-      world = this.renderer.world;
+      renderer = this.renderer,
+      world = renderer.world;
 
     fragmentProgram.precision('mediump', 'float');
 
@@ -122,75 +134,6 @@ class ShaderProgrammer {
   }
 
   /**
-   * Get a uniform location
-   *
-   * @method uniformLocation
-   * @param name
-   */
-  uniformLocation(name) {
-    this.uniforms[name] = this.gl.getUniformLocation(this.program, name);
-  }
-
-  /**
-   * Get an attribute location
-   *
-   * @method attributeLocation
-   * @param name
-   */
-  attributeLocation(name) {
-    this.attributes[name] = this.gl.getAttribLocation(this.program, name);
-
-    if (this.attributes[name] === -1) {
-      throw `Attribute ${name} cannot be located`;
-    }
-
-  }
-
-  /**
-   * Set a uniform value
-   *
-   * @param name
-   * @param value
-   */
-  uniformValue(name, value) {
-    var gl = this.gl;
-
-    if (typeof this.uniforms[name] === 'undefined') {
-      this.uniformLocation(name);
-    }
-
-    if (value.length === 4) {
-      gl.uniform4fv(this.uniforms[name], value);
-    } else if (value.length === 3) {
-      gl.uniform3fv(this.uniforms[name], value);
-    } else if (value.length === 9) {
-      gl.uniformMatrix3fv(this.uniforms[name], false, value);
-    } else if (value.length === 16) {
-      gl.uniformMatrix4fv(this.uniforms[name], false, value);
-    }
-  }
-
-  /**
-   * Set an attribute value
-   *
-   * @param name
-   * @param value
-   */
-  attributeValue(name, value) {
-    var gl = this.gl;
-
-    if (typeof this.attributes[name] === 'undefined') {
-      this.attributeLocation(name);
-    }
-
-    if (this.attributes[name] === -1) {
-      return;
-    }
-
-    this.gl.vertexAttribPointer(this.attributes[name], value.itemSize, this.gl.FLOAT, false, 0, 0);
-  }
-
-  /**
    * Use this program.
    *
    * @method use
@@ -229,6 +172,11 @@ class ShaderProgrammer {
     return shader;
   }
 
+  /**
+   * Create an instance of WebGLProgram
+   *
+   * @returns {WebGLProgram}
+   */
   create() {
     var gl = this.gl;
     var program = gl.createProgram();
