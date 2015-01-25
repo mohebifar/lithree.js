@@ -37,7 +37,7 @@ class Uniform {
    * @method update
    */
   update() {
-    if(typeof this.onupdate === 'function') {
+    if (typeof this.onupdate === 'function') {
       this.onupdate.apply(this);
     }
   }
@@ -45,6 +45,7 @@ class Uniform {
   /**
    * Set value of this variable
    *
+   * @todo Set value according to uniform type and value type
    * @method {*} value The value to set
    * @param value
    */
@@ -67,6 +68,10 @@ class Uniform {
       } else if (value.length === 16) {
         gl.uniformMatrix4fv(this.location, false, value);
       }
+    } else if (typeof value === 'boolean') {
+      gl.uniform1i(this.location, value);
+    } else {
+      gl.uniform1f(this.location, value);
     }
   }
 

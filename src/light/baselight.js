@@ -6,7 +6,6 @@ class BaseLight {
   constructor() {
     this.index = lightId++;
     this.type = 'light';
-    console.log(this);
   }
 
 }

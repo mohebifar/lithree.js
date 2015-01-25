@@ -17,6 +17,14 @@ class Material {
      * @type {boolean}
      */
     this.lighting = true;
+
+    /**
+     * Does this material has specular lighting ?
+     *
+     * @property specular
+     * @type {boolean}
+     */
+    this.specular = true;
   }
 
 }

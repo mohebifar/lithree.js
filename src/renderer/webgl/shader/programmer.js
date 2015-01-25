@@ -111,6 +111,13 @@ class ShaderProgrammer {
         this.value(nMatrix);
       }, 'nMatrix');
 
+      vertexProgram.uniform('float', function () {
+        this.value(obj.material.shininess);
+      }, 'fShininess');
+
+      vertexProgram.uniform('bool', function () {
+        this.value(obj.material.specular);
+      }, 'bSpecular');
 
       vertexProgram.code('vec3 transformedNormal = nMatrix * vNormal;');
       vertexProgram.code('vec3 normal = normalize(transformedNormal);');

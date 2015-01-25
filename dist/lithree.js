@@ -208,7 +208,6 @@ var lightId = 0;
 var BaseLight = function BaseLight() {
   this.index = lightId++;
   this.type = "light";
-  console.log(this);
 };"use strict";
 
 var _prototypeProperties = function (child, staticProps, instanceProps) {
@@ -353,8 +352,8 @@ var _inherits = function (subClass, superClass) {
 var PointLight = (function (BaseLight) {
   function PointLight() {
     _get(Object.getPrototypeOf(PointLight.prototype), "constructor", this).call(this);
-    this.specularColor = new Color(0.8, 0.8, 0.8);
-    this.diffuseColor = new Color(0.8, 0.8, 0.8);
+    this.specularColor = new Color(1, 1, 1);
+    this.diffuseColor = new Color(1, 1, 1);
     this.position = new Vector3(-10, 4, -20);
   }
 
@@ -366,18 +365,18 @@ var PointLight = (function (BaseLight) {
         var _this = this;
 
         var specularColor = vertexProgram.uniform("vec3", function () {
-          this.value(_this.specularColor);
+          this.value(_this.specularColor.toArray());
         });
 
         var diffuseColor = vertexProgram.uniform("vec3", function () {
-          this.value(_this.diffuseColor);
+          this.value(_this.diffuseColor.toArray());
         });
 
         var lightPosition = vertexProgram.uniform("vec3", function () {
           this.value(_this.position);
         });
 
-        vertexProgram.code("vec3 lightDirection = normalize(%lp - %vp.xyz);\n            float %sw = 0.0;\n\n            if (true) {\n                %sw = pow(max(dot(reflect(-lightDirection, normal), normalize(-%vp.xyz)), 0.0), 39.0);\n            }\n\n            float %dw = max(dot(normal, lightDirection), 0.0);\n            %lw += vec3(1, 1, 1) * %sw + vec3(1, 1, 1) * %dw;", {
+        vertexProgram.code("\nvec3 lightDirection = normalize(%lp - %vp.xyz);\nfloat %sw = 0.0;\n\nif (bSpecular) {\n  %sw = pow(max(dot(reflect(-lightDirection, normal), normalize(-%vp.xyz)), 0.0), fShininess);\n}\n\nfloat %dw = max(dot(normal, lightDirection), 0.0);\n%lw += %sc * %sw + %dc * %dw;\n            ", {
           sc: specularColor,
           dc: diffuseColor,
           lp: lightPosition,
@@ -385,7 +384,8 @@ var PointLight = (function (BaseLight) {
           vp: "vPosition",
           sw: "specularLightWeighting" + this.index,
           dw: "diffuseLightWeighting" + this.index,
-          lw: "lightWeight"
+          lw: "lightWeight",
+          fs: "fShininess"
         });
       },
       writable: true,
@@ -413,6 +413,14 @@ var Material = function Material() {
    * @type {boolean}
    */
   this.lighting = true;
+
+  /**
+   * Does this material has specular lighting ?
+   *
+   * @property specular
+   * @type {boolean}
+   */
+  this.specular = true;
 };"use strict";
 
 var _prototypeProperties = function (child, staticProps, instanceProps) {
@@ -1779,6 +1787,13 @@ var ShaderProgrammer = (function () {
             this.value(nMatrix);
           }, "nMatrix");
 
+          vertexProgram.uniform("float", function () {
+            this.value(obj.material.shininess);
+          }, "fShininess");
+
+          vertexProgram.uniform("bool", function () {
+            this.value(obj.material.specular);
+          }, "bSpecular");
 
           vertexProgram.code("vec3 transformedNormal = nMatrix * vNormal;");
           vertexProgram.code("vec3 normal = normalize(transformedNormal);");
@@ -2176,6 +2191,7 @@ var Uniform = (function () {
       /**
        * Set value of this variable
        *
+       * @todo Set value according to uniform type and value type
        * @method {*} value The value to set
        * @param value
        */
@@ -2198,6 +2214,10 @@ var Uniform = (function () {
           } else if (value.length === 16) {
             gl.uniformMatrix4fv(this.location, false, value);
           }
+        } else if (typeof value === "boolean") {
+          gl.uniform1i(this.location, value);
+        } else {
+          gl.uniform1f(this.location, value);
         }
       },
       writable: true,
