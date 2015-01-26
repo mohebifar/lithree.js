@@ -3,6 +3,15 @@ import Vector3 from '../math/vector3.js';
 
 export default
 class PerspectiveCamera {
+
+  /**
+   * Constructor of Perspective camera
+   *
+   * @param {Number} [fovy=0.785398]
+   * @param {Number} [aspect=1]
+   * @param {Number} [near=0.1]
+   * @param {Number} [far=100]
+   */
   constructor(fovy = 0.785398, aspect = 1, near = 0.1, far = 100) {
     this.fovy = fovy;
     this.aspect = aspect;
@@ -15,6 +24,11 @@ class PerspectiveCamera {
     this._zoom = 1;
   }
 
+  /**
+   * Declares zoom
+   *
+   * @property {Number} [zoom=1]
+   */
   set zoom(zoom) {
     if (zoom < 0) {
       throw 'Zoom should be equal or greater than 0';
@@ -27,7 +41,9 @@ class PerspectiveCamera {
     return this._zoom;
   }
 
-
+  /**
+   * @method updatePerspective
+   */
   updatePerspective() {
     var fovy = 2 * Math.atan(Math.tan(this.fovy * 0.5) / this._zoom);
     this.matrix.perspective(fovy, this.aspect, this.near, this.far);

@@ -6,6 +6,14 @@ var _prototypeProperties = function (child, staticProps, instanceProps) {
 };
 
 var PerspectiveCamera = (function () {
+  /**
+   * Constructor of Perspective camera
+   *
+   * @param {Number} [fovy=0.785398]
+   * @param {Number} [aspect=1]
+   * @param {Number} [near=0.1]
+   * @param {Number} [far=100]
+   */
   function PerspectiveCamera() {
     var fovy = arguments[0] === undefined ? 0.785398 : arguments[0];
     var aspect = arguments[1] === undefined ? 1 : arguments[1];
@@ -24,6 +32,12 @@ var PerspectiveCamera = (function () {
 
   _prototypeProperties(PerspectiveCamera, null, {
     zoom: {
+
+      /**
+       * Declares zoom
+       *
+       * @property {Number} [zoom=1]
+       */
       set: function (zoom) {
         if (zoom < 0) {
           throw "Zoom should be equal or greater than 0";
@@ -38,6 +52,10 @@ var PerspectiveCamera = (function () {
       configurable: true
     },
     updatePerspective: {
+
+      /**
+       * @method updatePerspective
+       */
       value: function updatePerspective() {
         var fovy = 2 * Math.atan(Math.tan(this.fovy * 0.5) / this._zoom);
         this.matrix.perspective(fovy, this.aspect, this.near, this.far);
@@ -349,11 +367,21 @@ var _inherits = function (subClass, superClass) {
   if (superClass) subClass.__proto__ = superClass;
 };
 
+/**
+ * Point light class
+ *
+ * @class PointLight
+ */
 var PointLight = (function (BaseLight) {
+  /**
+   * Constructor of point light
+   *
+   * @method constructor
+   */
   function PointLight() {
     _get(Object.getPrototypeOf(PointLight.prototype), "constructor", this).call(this);
-    this.specularColor = new Color(1, 1, 1);
-    this.diffuseColor = new Color(1, 1, 1);
+    this.specularColor = new Color(0.5, 0.5, 0.5);
+    this.diffuseColor = new Color(0.3, 0.3, 0.3);
     this.position = new Vector3(-10, 4, -20);
   }
 
@@ -361,6 +389,13 @@ var PointLight = (function (BaseLight) {
 
   _prototypeProperties(PointLight, null, {
     program: {
+
+      /**
+       * Inject codes to shader to affect this light
+       *
+       * @param vertexProgram
+       * @param fragmentProgram
+       */
       value: function program(vertexProgram, fragmentProgram) {
         var _this = this;
 
@@ -376,7 +411,7 @@ var PointLight = (function (BaseLight) {
           this.value(_this.position);
         });
 
-        vertexProgram.code("\nvec3 lightDirection = normalize(%lp - %vp.xyz);\nfloat %sw = 0.0;\n\nif (bSpecular) {\n  %sw = pow(max(dot(reflect(-lightDirection, normal), normalize(-%vp.xyz)), 0.0), fShininess);\n}\n\nfloat %dw = max(dot(normal, lightDirection), 0.0);\n%lw += %sc * %sw + %dc * %dw;\n            ", {
+        vertexProgram.code("\nvec3 %ld = normalize(%lp - %vp.xyz);\nfloat %sw = 0.0;\n\nif (bSpecular) {\n  %sw = pow(max(dot(reflect(-%ld, normal), normalize(-%vp.xyz)), 0.0), fShininess);\n}\n\nfloat %dw = max(dot(normal, -%ld), 0.0);\n%lw += %sc * %sw + %dc * %dw;\n            ", {
           sc: specularColor,
           dc: diffuseColor,
           lp: lightPosition,
