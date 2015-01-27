@@ -1,13 +1,44 @@
+import Emitter from '../core/emitter.js';
+
 export default
-class Vector3 {
+class Vector3 extends Emitter {
   constructor(x = 0, y = 0, z = 0) {
-    this.x = x;
-    this.y = y;
-    this.z = z;
+    super();
+
+    this._x = x;
+    this._y = y;
+    this._z = z;
   }
 
   clone() {
     return new Vector3(this.x, this.y, this.z);
+  }
+
+  get x() {
+    return this._x;
+  }
+
+  get y() {
+    return this._y;
+  }
+
+  get z() {
+    return this._z;
+  }
+
+  set x(x) {
+    this.emit('update');
+    this._x = x;
+  }
+
+  set y(y) {
+    this.emit('update');
+    this._y = y;
+  }
+
+  set z(z) {
+    this.emit('update');
+    this._z = z;
   }
 
   set(x, y, z) {
@@ -16,48 +47,84 @@ class Vector3 {
     this.z = z;
   }
 
-  add(value) {
-    if (typeof value === 'object') {
-      this.x += value.x;
-      this.y += value.y;
-      this.z += value.z;
+  add(value, create = false) {
+    var out;
+    if (create) {
+      out = this.clone();
     } else {
-      this.x += value;
-      this.y += value;
-      this.z += value;
+      out = this;
     }
+
+    if (typeof value === 'object') {
+      out.x += value.x;
+      out.y += value.y;
+      out.z += value.z;
+    } else {
+      out.x += value;
+      out.y += value;
+      out.z += value;
+    }
+
+    return out;
   }
 
-  subtract(value) {
-    if (typeof value === 'object') {
-      this.x -= value.x;
-      this.y -= value.y;
-      this.z -= value.z;
+  subtract(value, create = false) {
+    var out;
+    if (create) {
+      out = this.clone();
     } else {
-      this.add(-value);
+      out = this;
     }
+
+    if (typeof value === 'object') {
+      out.x -= value.x;
+      out.y -= value.y;
+      out.z -= value.z;
+    } else {
+      out.add(-value);
+    }
+
+    return out;
   }
 
-  multiply(value) {
-    if (typeof value === 'object') {
-      this.x *= value.x;
-      this.y *= value.y;
-      this.z *= value.z;
+  multiply(value, create = false) {
+    var out;
+    if (create) {
+      out = this.clone();
     } else {
-      this.x *= value;
-      this.y *= value;
-      this.z *= value;
+      out = this;
     }
+
+    if (typeof value === 'object') {
+      out.x *= value.x;
+      out.y *= value.y;
+      out.z *= value.z;
+    } else {
+      out.x *= value;
+      out.y *= value;
+      out.z *= value;
+    }
+
+    return out;
   }
 
-  divide(value) {
-    if (typeof value === 'object') {
-      this.x /= value.x;
-      this.y /= value.y;
-      this.z /= value.z;
+  divide(value, create = false) {
+    var out;
+    if (create) {
+      out = this.clone();
     } else {
-      this.multiply(1 / value);
+      out = this;
     }
+
+    if (typeof value === 'object') {
+      out.x /= value.x;
+      out.y /= value.y;
+      out.z /= value.z;
+    } else {
+      out.multiply(1 / value);
+    }
+
+    return out;
   }
 
   distance(vector) {
@@ -81,8 +148,11 @@ class Vector3 {
   }
 
   cross(vector) {
-
     return new Vector3(this.y * vector.z - this.z * vector.y, this.z * vector.x - this.x * vector.z, this.x * vector.y - this.y * vector.x);
+  }
+
+  angle(vector) {
+    return Math.acos(this.dot(vector) / this.distance(vector));
   }
 
   toArray() {

@@ -26,8 +26,11 @@ var PerspectiveCamera = (function () {
     this.matrix = new Matrix4();
     this.lookAt = new Vector3();
     this.position = new Vector3();
+    this.rotation = new Vector3();
     this.up = new Vector3();
     this._zoom = 1;
+
+    var _this = this;
   }
 
   _prototypeProperties(PerspectiveCamera, null, {
@@ -58,7 +61,24 @@ var PerspectiveCamera = (function () {
        */
       value: function updatePerspective() {
         var fovy = 2 * Math.atan(Math.tan(this.fovy * 0.5) / this._zoom);
+        this.matrix.identity();
         this.matrix.perspective(fovy, this.aspect, this.near, this.far);
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    getMatrix: {
+      value: function getMatrix() {
+        var matrix = new Matrix4();
+
+        matrix.identity();
+        matrix.translate(this.position);
+        matrix.rotateX(this.rotation.x);
+        matrix.rotateY(this.rotation.y);
+        matrix.rotateZ(this.rotation.z);
+
+        return matrix;
       },
       writable: true,
       enumerable: true,
@@ -177,6 +197,196 @@ if (!WebGLRenderingContext) {
     }
   };
 }"use strict";
+
+var _prototypeProperties = function (child, staticProps, instanceProps) {
+  if (staticProps) Object.defineProperties(child, staticProps);
+  if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
+};
+
+/**
+ * Creates a new instance of Emitter.
+ * @class
+ * @returns {Object} emitter - An instance of Emitter.
+ * @example
+ * var emitter = new Emitter();
+ */
+var Emitter = (function () {
+  function Emitter() {
+    this._events = {};
+  }
+
+  _prototypeProperties(Emitter, null, {
+    on: {
+
+      /**
+       * Adds a listener to the collection for a specified event.
+       * @public
+       * @function
+       * @name Emitter#on
+       * @param {String} event - Event name.
+       * @param {Function} listener - Listener function.
+       * @returns {Object} emitter
+       * @example
+       * emitter.on('ready', listener);
+       */
+      value: function on(event, listener) {
+        this._events[event] = this._events[event] || [];
+        this._events[event].push(listener);
+        return this;
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    once: {
+
+      /**
+       * Adds a one time listener to the collection for a specified event. It will execute only once.
+       * @public
+       * @function
+       * @name Emitter#once
+       * @param {String} event - Event name.
+       * @param {Function} listener - Listener function.
+       * @returns {Object} emitter
+       * @example
+       * me.once('contentLoad', listener);
+       */
+      value: function once(event, listener) {
+        var fn = function () {
+          that.off(event, fn);
+          listener.apply(this, arguments);
+        };
+
+        var that = this;
+
+        fn.listener = listener;
+
+        this.on(event, fn);
+
+        return this;
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    off: {
+
+      /**
+       * Removes a listener from the collection for a specified event.
+       * @public
+       * @function
+       * @name Emitter#off
+       * @param {String} event - Event name.
+       * @param {Function} listener -  Listener function.
+       * @returns {Object} emitter
+       * @example
+       * me.off('ready', listener);
+       */
+      value: function off(event, listener) {
+        var listeners = this._events[event];
+
+        if (listeners !== undefined) {
+          for (var j = 0; j < listeners.length; j += 1) {
+            if (listeners[j] === listener || listeners[j].listener === listener) {
+              listeners.splice(j, 1);
+              break;
+            }
+          }
+
+          if (listeners.length === 0) {
+            this.removeAllListeners(event);
+          }
+        }
+
+        return this;
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    removeAllListeners: {
+
+      /**
+       * Removes all listeners from the collection for a specified event.
+       * @public
+       * @function
+       * @name Emitter#removeAllListeners
+       * @param {String} event - Event name.
+       * @returns {Object} emitter
+       * @example
+       * me.removeAllListeners('ready');
+       */
+      value: function removeAllListeners(event) {
+        try {
+          delete this._events[event];
+        } catch (e) {}
+
+        return this;
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    listeners: {
+
+      /**
+       * Returns all listeners from the collection for a specified event.
+       * @public
+       * @function
+       * @name Emitter#listeners
+       * @param {String} event - Event name.
+       * @returns {Array}
+       * @example
+       * me.listeners('ready');
+       */
+      value: function listeners(event) {
+        try {
+          return this._events[event];
+        } catch (e) {}
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    emit: {
+
+      /**
+       * Execute each item in the listener collection in order with the specified data.
+       * @name Emitter#emit
+       * @public
+       * @function
+       * @param {String} event - The name of the event you want to emit.
+       * @param {...args} [args] - Data to pass to the listeners.
+       * @example
+       * me.emit('ready', 'param1', {..}, [...]);
+       */
+      value: function emit() {
+        var args = [].slice.call(arguments, 0); // converted to array
+        var event = args.shift();
+        var listeners = this._events[event];
+
+        if (listeners !== undefined) {
+          listeners = listeners.slice(0);
+          var len = listeners.length;
+          for (var i = 0; i < len; i += 1) {
+            listeners[i].apply(this, args);
+          }
+        }
+
+        return this;
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    }
+  });
+
+  return Emitter;
+})();
+
+/**
+ * Exports Emitter
+ */"use strict";
 
 function computeNormal() {}"use strict";
 
@@ -561,7 +771,71 @@ var Matrix4 = (function (Array) {
 
   _inherits(Matrix4, Array);
 
-  _prototypeProperties(Matrix4, null, {
+  _prototypeProperties(Matrix4, {
+    multiply: {
+      value: function multiply(a, b) {
+        var out = new Matrix4();
+
+        var a00 = a[0],
+            a01 = a[1],
+            a02 = a[2],
+            a03 = a[3],
+            a10 = a[4],
+            a11 = a[5],
+            a12 = a[6],
+            a13 = a[7],
+            a20 = a[8],
+            a21 = a[9],
+            a22 = a[10],
+            a23 = a[11],
+            a30 = a[12],
+            a31 = a[13],
+            a32 = a[14],
+            a33 = a[15];
+
+        // Cache only the current line of the second matrix
+        var b0 = b[0],
+            b1 = b[1],
+            b2 = b[2],
+            b3 = b[3];
+        out[0] = b0 * a00 + b1 * a10 + b2 * a20 + b3 * a30;
+        out[1] = b0 * a01 + b1 * a11 + b2 * a21 + b3 * a31;
+        out[2] = b0 * a02 + b1 * a12 + b2 * a22 + b3 * a32;
+        out[3] = b0 * a03 + b1 * a13 + b2 * a23 + b3 * a33;
+
+        b0 = b[4];
+        b1 = b[5];
+        b2 = b[6];
+        b3 = b[7];
+        out[4] = b0 * a00 + b1 * a10 + b2 * a20 + b3 * a30;
+        out[5] = b0 * a01 + b1 * a11 + b2 * a21 + b3 * a31;
+        out[6] = b0 * a02 + b1 * a12 + b2 * a22 + b3 * a32;
+        out[7] = b0 * a03 + b1 * a13 + b2 * a23 + b3 * a33;
+
+        b0 = b[8];
+        b1 = b[9];
+        b2 = b[10];
+        b3 = b[11];
+        out[8] = b0 * a00 + b1 * a10 + b2 * a20 + b3 * a30;
+        out[9] = b0 * a01 + b1 * a11 + b2 * a21 + b3 * a31;
+        out[10] = b0 * a02 + b1 * a12 + b2 * a22 + b3 * a32;
+        out[11] = b0 * a03 + b1 * a13 + b2 * a23 + b3 * a33;
+
+        b0 = b[12];
+        b1 = b[13];
+        b2 = b[14];
+        b3 = b[15];
+        out[12] = b0 * a00 + b1 * a10 + b2 * a20 + b3 * a30;
+        out[13] = b0 * a01 + b1 * a11 + b2 * a21 + b3 * a31;
+        out[14] = b0 * a02 + b1 * a12 + b2 * a22 + b3 * a32;
+        out[15] = b0 * a03 + b1 * a13 + b2 * a23 + b3 * a33;
+        return out;
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    }
+  }, {
     identity: {
 
       /**
@@ -864,10 +1138,6 @@ var Matrix4 = (function (Array) {
 
         var d = a00 * b01 + a01 * b11 + a02 * b21;
 
-        if (!d) {
-          return null;
-        }
-
         var id = 1 / d;
 
         var result = new Matrix3();
@@ -960,15 +1230,56 @@ var _prototypeProperties = function (child, staticProps, instanceProps) {
   if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
 };
 
-var Vector3 = (function () {
+var _get = function get(object, property, receiver) {
+  var desc = Object.getOwnPropertyDescriptor(object, property);
+
+  if (desc === undefined) {
+    var parent = Object.getPrototypeOf(object);
+
+    if (parent === null) {
+      return undefined;
+    } else {
+      return get(parent, property, receiver);
+    }
+  } else if ("value" in desc && desc.writable) {
+    return desc.value;
+  } else {
+    var getter = desc.get;
+    if (getter === undefined) {
+      return undefined;
+    }
+    return getter.call(receiver);
+  }
+};
+
+var _inherits = function (subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+  }
+  subClass.prototype = Object.create(superClass && superClass.prototype, {
+    constructor: {
+      value: subClass,
+      enumerable: false,
+      writable: true,
+      configurable: true
+    }
+  });
+  if (superClass) subClass.__proto__ = superClass;
+};
+
+var Vector3 = (function (Emitter) {
   function Vector3() {
     var x = arguments[0] === undefined ? 0 : arguments[0];
     var y = arguments[1] === undefined ? 0 : arguments[1];
     var z = arguments[2] === undefined ? 0 : arguments[2];
-    this.x = x;
-    this.y = y;
-    this.z = z;
+    _get(Object.getPrototypeOf(Vector3.prototype), "constructor", this).call(this);
+
+    this._x = x;
+    this._y = y;
+    this._z = z;
   }
+
+  _inherits(Vector3, Emitter);
 
   _prototypeProperties(Vector3, null, {
     clone: {
@@ -976,6 +1287,39 @@ var Vector3 = (function () {
         return new Vector3(this.x, this.y, this.z);
       },
       writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    x: {
+      get: function () {
+        return this._x;
+      },
+      set: function (x) {
+        this.emit("update");
+        this._x = x;
+      },
+      enumerable: true,
+      configurable: true
+    },
+    y: {
+      get: function () {
+        return this._y;
+      },
+      set: function (y) {
+        this.emit("update");
+        this._y = y;
+      },
+      enumerable: true,
+      configurable: true
+    },
+    z: {
+      get: function () {
+        return this._z;
+      },
+      set: function (z) {
+        this.emit("update");
+        this._z = z;
+      },
       enumerable: true,
       configurable: true
     },
@@ -991,15 +1335,25 @@ var Vector3 = (function () {
     },
     add: {
       value: function add(value) {
-        if (typeof value === "object") {
-          this.x += value.x;
-          this.y += value.y;
-          this.z += value.z;
+        var create = arguments[1] === undefined ? false : arguments[1];
+        var out;
+        if (create) {
+          out = this.clone();
         } else {
-          this.x += value;
-          this.y += value;
-          this.z += value;
+          out = this;
         }
+
+        if (typeof value === "object") {
+          out.x += value.x;
+          out.y += value.y;
+          out.z += value.z;
+        } else {
+          out.x += value;
+          out.y += value;
+          out.z += value;
+        }
+
+        return out;
       },
       writable: true,
       enumerable: true,
@@ -1007,13 +1361,23 @@ var Vector3 = (function () {
     },
     subtract: {
       value: function subtract(value) {
-        if (typeof value === "object") {
-          this.x -= value.x;
-          this.y -= value.y;
-          this.z -= value.z;
+        var create = arguments[1] === undefined ? false : arguments[1];
+        var out;
+        if (create) {
+          out = this.clone();
         } else {
-          this.add(-value);
+          out = this;
         }
+
+        if (typeof value === "object") {
+          out.x -= value.x;
+          out.y -= value.y;
+          out.z -= value.z;
+        } else {
+          out.add(-value);
+        }
+
+        return out;
       },
       writable: true,
       enumerable: true,
@@ -1021,15 +1385,25 @@ var Vector3 = (function () {
     },
     multiply: {
       value: function multiply(value) {
-        if (typeof value === "object") {
-          this.x *= value.x;
-          this.y *= value.y;
-          this.z *= value.z;
+        var create = arguments[1] === undefined ? false : arguments[1];
+        var out;
+        if (create) {
+          out = this.clone();
         } else {
-          this.x *= value;
-          this.y *= value;
-          this.z *= value;
+          out = this;
         }
+
+        if (typeof value === "object") {
+          out.x *= value.x;
+          out.y *= value.y;
+          out.z *= value.z;
+        } else {
+          out.x *= value;
+          out.y *= value;
+          out.z *= value;
+        }
+
+        return out;
       },
       writable: true,
       enumerable: true,
@@ -1037,13 +1411,23 @@ var Vector3 = (function () {
     },
     divide: {
       value: function divide(value) {
-        if (typeof value === "object") {
-          this.x /= value.x;
-          this.y /= value.y;
-          this.z /= value.z;
+        var create = arguments[1] === undefined ? false : arguments[1];
+        var out;
+        if (create) {
+          out = this.clone();
         } else {
-          this.multiply(1 / value);
+          out = this;
         }
+
+        if (typeof value === "object") {
+          out.x /= value.x;
+          out.y /= value.y;
+          out.z /= value.z;
+        } else {
+          out.multiply(1 / value);
+        }
+
+        return out;
       },
       writable: true,
       enumerable: true,
@@ -1093,6 +1477,14 @@ var Vector3 = (function () {
       enumerable: true,
       configurable: true
     },
+    angle: {
+      value: function angle(vector) {
+        return Math.acos(this.dot(vector) / this.distance(vector));
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
     toArray: {
       value: function toArray() {
         return [this.x, this.y, this.z];
@@ -1104,7 +1496,7 @@ var Vector3 = (function () {
   });
 
   return Vector3;
-})();"use strict";
+})(Emitter);"use strict";
 
 /**
  * Circle factory
@@ -1381,15 +1773,13 @@ var Object3D = (function () {
     getMatrix: {
 
       /**
-       * Get model view of this object by given camera
+       * Update model matrix
        *
-       * @param camera
        * @returns {Matrix4}
        */
-      value: function getMatrix(camera) {
+      value: function getMatrix() {
         var mvMatrix = new Matrix4();
-
-        mvMatrix.lookAt(camera.position, camera.lookAt, camera.up);
+        mvMatrix.identity();
 
         mvMatrix.translate(this.position);
 
@@ -1765,6 +2155,7 @@ var ShaderProgrammer = (function () {
        */
       value: function initPositionCamera() {
         var obj = this.object,
+            gl = this.gl,
             buffers = obj.buffers,
             vertexProgram = this.vertexProgram,
             renderer = this.renderer;
@@ -1773,12 +2164,16 @@ var ShaderProgrammer = (function () {
           this.value(buffers.vertices);
         }, "vPosition");
 
+        var normal = vertexProgram.attribute("vec3", function () {
+          this.value(buffers.normals);
+        }, "vNormal");
+
         var pMatrix = vertexProgram.uniform("mat4", function () {
           this.value(renderer.camera.matrix);
         }, "pMatrix");
 
         var mvMatrix = vertexProgram.uniform("mat4", function () {
-          this.value(obj.getMatrix(renderer.camera));
+          this.value(Matrix4.multiply(renderer.camera.getMatrix(), obj.getMatrix()));
         }, "mvMatrix");
 
         vertexProgram.code("gl_Position = %p * %m * vec4(%v, 1.0);", {

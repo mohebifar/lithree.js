@@ -59,6 +59,7 @@ class ShaderProgrammer {
    */
   initPositionCamera() {
     var obj = this.object,
+      gl = this.gl,
       buffers = obj.buffers,
       vertexProgram = this.vertexProgram,
       renderer = this.renderer;
@@ -67,12 +68,16 @@ class ShaderProgrammer {
       this.value(buffers.vertices);
     }, 'vPosition');
 
+    var normal = vertexProgram.attribute('vec3', function () {
+      this.value(buffers.normals);
+    }, 'vNormal');
+
     var pMatrix = vertexProgram.uniform('mat4', function () {
       this.value(renderer.camera.matrix);
     }, 'pMatrix');
 
     var mvMatrix = vertexProgram.uniform('mat4', function () {
-      this.value(obj.getMatrix(renderer.camera));
+      this.value(Matrix4.multiply(renderer.camera.getMatrix(), obj.getMatrix()));
     }, 'mvMatrix');
 
     vertexProgram.code('gl_Position = %p * %m * vec4(%v, 1.0);', {

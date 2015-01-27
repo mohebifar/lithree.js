@@ -40,15 +40,13 @@ class Object3D {
   }
 
   /**
-   * Get model view of this object by given camera
+   * Update model matrix
    *
-   * @param camera
    * @returns {Matrix4}
    */
-  getMatrix(camera) {
+  getMatrix() {
     var mvMatrix = new Matrix4();
-
-    mvMatrix.lookAt(camera.position, camera.lookAt, camera.up);
+    mvMatrix.identity();
 
     mvMatrix.translate(this.position);
 

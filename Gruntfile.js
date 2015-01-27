@@ -49,6 +49,13 @@ grunt.initConfig({
         livereload: true,
         spawn: false
       }
+    },
+    examples: {
+      files: ['examples/**/*'],
+      options: {
+        livereload: true,
+        spawn: false
+      }
     }
   },
   jshint: {
