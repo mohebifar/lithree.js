@@ -152,7 +152,7 @@ class Vector3 extends Emitter {
   }
 
   angle(vector) {
-    return Math.acos(this.dot(vector) / this.distance(vector));
+    return Math.acos(this.dot(vector) / this.getLength() / vector.getLength());
   }
 
   toArray() {

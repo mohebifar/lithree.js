@@ -2,7 +2,7 @@
 <html>
 <head lang="en">
   <meta charset="UTF-8">
-  <title>lithree.js</title>
+  <title>Sphere</title>
   <style>
     body {
       margin: 0;
@@ -18,21 +18,22 @@
 <script>
   var world = new LiThree.World();
   var renderer = new LiThree.WebGLRenderer(640, 480, world);
+  var camera = renderer.camera;
 
-  var sphere = LiThree.ObjectFactory.Sphere(2, 26, 26);
+  var sphere = LiThree.ObjectFactory.Sphere(2);
   sphere.drawingMode = WebGLRenderingContext.TRIANGLES;
+  sphere.color.rgb(0.2, 0.2, 0.2);
 
-  sphere.position.z = -10;
+  camera.position.z = -10;
 
   world.add(sphere);
 
-  sphere.color.hex = '#A22';
-
-  var light = new LiThree.DirectionalLight();
-  light.direction.set(1.1, 0.8, 1.2);
-  light.color.rgb(0.2, 0.2, 0.2);
+  var light = new LiThree.Light.Point();
+  light.diffuseColor.hex = '#16A086';
+  light.position.x = -10;
+  light.position.z = -20;
+  light.position.y = 0;
   world.add(light);
-  var lastTime = Date.now();
 
   renderer.initShapes();
 
@@ -42,14 +43,16 @@
     requestAnimationFrame(redraw);
   }
 
+  requestAnimationFrame(redraw);
+
   document.body.appendChild(renderer.canvas);
 
   renderer.canvas.onmousewheel = function (e) {
-    if (renderer.camera.zoom + e.wheelDeltaY / 240 < 1) {
+    if (camera.zoom + e.wheelDeltaY / 240 < 1) {
       return;
     }
-    renderer.camera.zoom += e.wheelDeltaY / 240;
-    renderer.camera.updatePerspective();
+    camera.zoom += e.wheelDeltaY / 240;
+    camera.updatePerspective();
   };
 
   var isDragging, lastPoint = {};
@@ -74,13 +77,11 @@
       lastPoint.x = e.clientX;
       lastPoint.y = e.clientY;
 
-      sphere.rotation.x += delta.y / 200;
-      sphere.rotation.y += delta.x / 200;
+      camera.position.x += delta.x / 100;
+      camera.position.y -= delta.y / 100;
     }
 
   };
-
-  requestAnimationFrame(redraw);
 </script>
 
 </body>

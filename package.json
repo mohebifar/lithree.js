@@ -27,6 +27,5 @@
     "load-grunt-tasks": "^2.0.0"
   },
   "dependencies": {
-    "gl-matrix": "^2.1.0"
   }
 }

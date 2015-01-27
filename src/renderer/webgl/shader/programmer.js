@@ -1,4 +1,5 @@
 import Shader from 'shader.js';
+import Matrix4 from '../../../math/matrix4.js';
 
 /**
  * This class is used to create and compile a glsl program.

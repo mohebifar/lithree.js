@@ -1479,7 +1479,7 @@ var Vector3 = (function (Emitter) {
     },
     angle: {
       value: function angle(vector) {
-        return Math.acos(this.dot(vector) / this.distance(vector));
+        return Math.acos(this.dot(vector) / this.getLength() / vector.getLength());
       },
       writable: true,
       enumerable: true,
@@ -1635,8 +1635,8 @@ function CylinderFactory() {
       heightBottom = height / -2;
 
   for (a = 0, i = 1; i <= steps; a += step, i++) {
-    var positionTop = new Vector3(Math.cos(a) * radiusTop, Math.sin(a) * radiusTop, heightTop);
-    var positionBottom = new Vector3(Math.cos(a) * radiusBottom, Math.sin(a) * radiusBottom, heightBottom);
+    var positionTop = new Vector3(Math.cos(a) * radiusTop, heightTop, Math.sin(a) * radiusTop);
+    var positionBottom = new Vector3(Math.cos(a) * radiusBottom, heightBottom, Math.sin(a) * radiusBottom);
 
     var crossed = positionTop.cross(positionBottom);
 
