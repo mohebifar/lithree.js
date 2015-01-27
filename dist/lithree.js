@@ -1925,42 +1925,12 @@ var WebGLRenderer = (function (Renderer) {
         for (var i = this.world.children.length; i--;) {
           var object = this.world.children[i];
 
-          object.shader = new ShaderProgrammer(this, object);
-
           object.buffers.vertices = this.gl.createBuffer();
+          object.buffers.vertexColor = this.gl.createBuffer();
+          object.buffers.normals = this.gl.createBuffer();
+          object.buffers.vertexIndex = this.gl.createBuffer();
 
-          this.gl.bindBuffer(this.gl.ARRAY_BUFFER, object.buffers.vertices);
-          this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(object.vertices), this.gl.STATIC_DRAW);
-
-          object.buffers.vertices.itemSize = 3;
-          object.buffers.vertices.numItems = object.vertices.length / 3;
-
-          if (object.vertexColor) {
-            object.buffers.vertexColor = this.gl.createBuffer();
-            this.gl.bindBuffer(this.gl.ARRAY_BUFFER, object.buffers.vertexColor);
-            this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(object.vertexColor), this.gl.STATIC_DRAW);
-
-            object.buffers.vertexColor.itemSize = 4;
-            object.buffers.vertexColor.numItems = object.vertexColor.length;
-          }
-
-          if (object.vertexNormals) {
-            object.buffers.normals = this.gl.createBuffer();
-            this.gl.bindBuffer(this.gl.ARRAY_BUFFER, object.buffers.normals);
-            this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(object.vertexNormals), this.gl.STATIC_DRAW);
-
-            object.buffers.normals.itemSize = 3;
-            object.buffers.normals.numItems = object.vertexNormals.length;
-          }
-
-          if (object.vertexIndex) {
-            object.buffers.vertexIndex = this.gl.createBuffer();
-            this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, object.buffers.vertexIndex);
-            this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(object.vertexIndex), this.gl.STATIC_DRAW);
-
-            object.buffers.vertexIndex.itemSize = 1;
-            object.buffers.vertexIndex.numItems = object.vertexIndex.length;
-          }
+          object.shader = new ShaderProgrammer(this, object);
         }
       },
       writable: true,
@@ -2127,8 +2097,39 @@ var ShaderProgrammer = (function () {
        */
       value: function assignValues() {
         var i,
+            object = this.object,
             vertexProgram = this.vertexProgram,
             fragmentProgram = this.fragmentProgram;
+
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, object.buffers.vertices);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(object.vertices), this.gl.STATIC_DRAW);
+
+        object.buffers.vertices.itemSize = 3;
+        object.buffers.vertices.numItems = object.vertices.length / 3;
+
+        if (object.vertexColor) {
+          this.gl.bindBuffer(this.gl.ARRAY_BUFFER, object.buffers.vertexColor);
+          this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(object.vertexColor), this.gl.STATIC_DRAW);
+
+          object.buffers.vertexColor.itemSize = 4;
+          object.buffers.vertexColor.numItems = object.vertexColor.length;
+        }
+
+        if (object.vertexNormals) {
+          this.gl.bindBuffer(this.gl.ARRAY_BUFFER, object.buffers.normals);
+          this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(object.vertexNormals), this.gl.STATIC_DRAW);
+
+          object.buffers.normals.itemSize = 3;
+          object.buffers.normals.numItems = object.vertexNormals.length;
+        }
+
+        if (object.vertexIndex) {
+          this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, object.buffers.vertexIndex);
+          this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(object.vertexIndex), this.gl.STATIC_DRAW);
+
+          object.buffers.vertexIndex.itemSize = 1;
+          object.buffers.vertexIndex.numItems = object.vertexIndex.length;
+        }
 
         for (i in vertexProgram._variables) {
           if (vertexProgram._variables[i].update) {
