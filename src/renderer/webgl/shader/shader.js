@@ -32,7 +32,7 @@ class Shader {
    */
   init() {
     for (var i in this._variables) {
-      if(typeof this._variables[i].create !== 'undefined') {
+      if (typeof this._variables[i].create !== 'undefined') {
         this._variables[i].create();
       }
     }
@@ -107,16 +107,15 @@ class Shader {
    * @returns {Shader}
    */
   code(code, params) {
-    var variable;
 
     if (typeof params !== 'undefined') {
       for (var i in params) {
-        variable = typeof params[i] === 'object' ? params[i].name : params[i];
+        let variable = typeof params[i] === 'object' ? params[i].name : params[i];
         code = code.replace(new RegExp(`\%${i}`, 'gm'), variable);
       }
     }
 
-    this._code += code +'\n';
+    this._code += code + '\n';
 
     return this;
   }
@@ -130,7 +129,7 @@ class Shader {
    * @returns {Object}
    */
   getVariable(name) {
-    if(typeof this._variables[name] !== 'undefined') {
+    if (typeof this._variables[name] !== 'undefined') {
       return this._variables[name];
     } else {
       throw `The variable ${name} is not set.`;
@@ -143,10 +142,10 @@ class Shader {
    * @returns {String}
    */
   toString() {
-    var i, variable, code = '';
+    var i, code = '';
 
     for (i in this._variables) {
-      variable = this._variables[i];
+      let variable = this._variables[i];
 
       if (variable instanceof Uniform) {
         code += `uniform ${variable.type} ${variable.name};\n`;

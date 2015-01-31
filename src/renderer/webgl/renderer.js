@@ -69,7 +69,7 @@ class WebGLRenderer extends Renderer {
 
     for (var i = this.world.children.length; i--;) {
 
-      var object = this.world.children[i];
+      let object = this.world.children[i];
 
       this.initShape(object);
 
@@ -99,8 +99,8 @@ class WebGLRenderer extends Renderer {
 
     for (var i = this.world.children.length; i--;) {
 
-      var object = this.world.children[i];
-      var buffers = object.buffers;
+      let object = this.world.children[i];
+      let buffers = object.buffers;
 
       object.shader.use();
       object.shader.assignValues();

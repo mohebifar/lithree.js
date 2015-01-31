@@ -240,54 +240,6 @@ class Matrix4 extends Array {
     return this;
   }
 
-  static multiply(a, b) {
-    var out = new Matrix4();
-
-    var a00 = a[0], a01 = a[1], a02 = a[2], a03 = a[3],
-      a10 = a[4], a11 = a[5], a12 = a[6], a13 = a[7],
-      a20 = a[8], a21 = a[9], a22 = a[10], a23 = a[11],
-      a30 = a[12], a31 = a[13], a32 = a[14], a33 = a[15];
-
-    // Cache only the current line of the second matrix
-    var b0 = b[0], b1 = b[1], b2 = b[2], b3 = b[3];
-    out[0] = b0 * a00 + b1 * a10 + b2 * a20 + b3 * a30;
-    out[1] = b0 * a01 + b1 * a11 + b2 * a21 + b3 * a31;
-    out[2] = b0 * a02 + b1 * a12 + b2 * a22 + b3 * a32;
-    out[3] = b0 * a03 + b1 * a13 + b2 * a23 + b3 * a33;
-
-    b0 = b[4];
-    b1 = b[5];
-    b2 = b[6];
-    b3 = b[7];
-    out[4] = b0 * a00 + b1 * a10 + b2 * a20 + b3 * a30;
-    out[5] = b0 * a01 + b1 * a11 + b2 * a21 + b3 * a31;
-    out[6] = b0 * a02 + b1 * a12 + b2 * a22 + b3 * a32;
-    out[7] = b0 * a03 + b1 * a13 + b2 * a23 + b3 * a33;
-
-    b0 = b[8];
-    b1 = b[9];
-    b2 = b[10];
-    b3 = b[11];
-    out[8] = b0 * a00 + b1 * a10 + b2 * a20 + b3 * a30;
-    out[9] = b0 * a01 + b1 * a11 + b2 * a21 + b3 * a31;
-    out[10] = b0 * a02 + b1 * a12 + b2 * a22 + b3 * a32;
-    out[11] = b0 * a03 + b1 * a13 + b2 * a23 + b3 * a33;
-
-    b0 = b[12];
-    b1 = b[13];
-    b2 = b[14];
-    b3 = b[15];
-    out[12] = b0 * a00 + b1 * a10 + b2 * a20 + b3 * a30;
-    out[13] = b0 * a01 + b1 * a11 + b2 * a21 + b3 * a31;
-    out[14] = b0 * a02 + b1 * a12 + b2 * a22 + b3 * a32;
-    out[15] = b0 * a03 + b1 * a13 + b2 * a23 + b3 * a33;
-    return out;
-  }
-
-  multiplyVec4(vector) {
-
-  }
-
   invert() {
     // Cache the matrix values (makes for huge speed increases!)
     var a00 = this[0], a01 = this[1], a02 = this[2], a03 = this[3];
@@ -364,55 +316,6 @@ class Matrix4 extends Array {
     return result;
   }
 
-  static multiplyVec4(mat, vec) {
-    var result = new Vector4();
-
-    result.x = mat[0] * vec.x + mat[4] * vec.y + mat[8] * vec.z + mat[12] * vec.w;
-    result.y = mat[1] * vec.x + mat[5] * vec.y + mat[9] * vec.z + mat[13] * vec.w;
-    result.z = mat[2] * vec.x + mat[6] * vec.y + mat[10] * vec.z + mat[14] * vec.w;
-    result.w = mat[3] * vec.x + mat[7] * vec.y + mat[11] * vec.z + mat[15] * vec.w;
-
-    return result;
-  }
-
-  static multiplyMatrices(a, b) {
-
-    var result = new Matrix4();
-
-    var a11 = a[0], a12 = a[4], a13 = a[8], a14 = a[12];
-    var a21 = a[1], a22 = a[5], a23 = a[9], a24 = a[13];
-    var a31 = a[2], a32 = a[6], a33 = a[10], a34 = a[14];
-    var a41 = a[3], a42 = a[7], a43 = a[11], a44 = a[15];
-
-    var b11 = b[0], b12 = b[4], b13 = b[8], b14 = b[12];
-    var b21 = b[1], b22 = b[5], b23 = b[9], b24 = b[13];
-    var b31 = b[2], b32 = b[6], b33 = b[10], b34 = b[14];
-    var b41 = b[3], b42 = b[7], b43 = b[11], b44 = b[15];
-
-    result[0] = a11 * b11 + a12 * b21 + a13 * b31 + a14 * b41;
-    result[4] = a11 * b12 + a12 * b22 + a13 * b32 + a14 * b42;
-    result[8] = a11 * b13 + a12 * b23 + a13 * b33 + a14 * b43;
-    result[12] = a11 * b14 + a12 * b24 + a13 * b34 + a14 * b44;
-
-    result[1] = a21 * b11 + a22 * b21 + a23 * b31 + a24 * b41;
-    result[5] = a21 * b12 + a22 * b22 + a23 * b32 + a24 * b42;
-    result[9] = a21 * b13 + a22 * b23 + a23 * b33 + a24 * b43;
-    result[13] = a21 * b14 + a22 * b24 + a23 * b34 + a24 * b44;
-
-    result[2] = a31 * b11 + a32 * b21 + a33 * b31 + a34 * b41;
-    result[6] = a31 * b12 + a32 * b22 + a33 * b32 + a34 * b42;
-    result[10] = a31 * b13 + a32 * b23 + a33 * b33 + a34 * b43;
-    result[14] = a31 * b14 + a32 * b24 + a33 * b34 + a34 * b44;
-
-    result[3] = a41 * b11 + a42 * b21 + a43 * b31 + a44 * b41;
-    result[7] = a41 * b12 + a42 * b22 + a43 * b32 + a44 * b42;
-    result[11] = a41 * b13 + a42 * b23 + a43 * b33 + a44 * b43;
-    result[15] = a41 * b14 + a42 * b24 + a43 * b34 + a44 * b44;
-
-    return result;
-
-  }
-
   /**
    * Rotates by given angle and giving X axis
    *
@@ -463,5 +366,98 @@ class Matrix4 extends Array {
     }
 
     return result;
+  }
+
+  static multiplyVec4(mat, vec) {
+    var result = new Vector4();
+
+    result.x = mat[0] * vec.x + mat[4] * vec.y + mat[8] * vec.z + mat[12] * vec.w;
+    result.y = mat[1] * vec.x + mat[5] * vec.y + mat[9] * vec.z + mat[13] * vec.w;
+    result.z = mat[2] * vec.x + mat[6] * vec.y + mat[10] * vec.z + mat[14] * vec.w;
+    result.w = mat[3] * vec.x + mat[7] * vec.y + mat[11] * vec.z + mat[15] * vec.w;
+
+    return result;
+  }
+
+  static multiply(a, b) {
+    var out = new Matrix4();
+
+    var a00 = a[0], a01 = a[1], a02 = a[2], a03 = a[3],
+      a10 = a[4], a11 = a[5], a12 = a[6], a13 = a[7],
+      a20 = a[8], a21 = a[9], a22 = a[10], a23 = a[11],
+      a30 = a[12], a31 = a[13], a32 = a[14], a33 = a[15];
+
+    // Cache only the current line of the second matrix
+    var b0 = b[0], b1 = b[1], b2 = b[2], b3 = b[3];
+    out[0] = b0 * a00 + b1 * a10 + b2 * a20 + b3 * a30;
+    out[1] = b0 * a01 + b1 * a11 + b2 * a21 + b3 * a31;
+    out[2] = b0 * a02 + b1 * a12 + b2 * a22 + b3 * a32;
+    out[3] = b0 * a03 + b1 * a13 + b2 * a23 + b3 * a33;
+
+    b0 = b[4];
+    b1 = b[5];
+    b2 = b[6];
+    b3 = b[7];
+    out[4] = b0 * a00 + b1 * a10 + b2 * a20 + b3 * a30;
+    out[5] = b0 * a01 + b1 * a11 + b2 * a21 + b3 * a31;
+    out[6] = b0 * a02 + b1 * a12 + b2 * a22 + b3 * a32;
+    out[7] = b0 * a03 + b1 * a13 + b2 * a23 + b3 * a33;
+
+    b0 = b[8];
+    b1 = b[9];
+    b2 = b[10];
+    b3 = b[11];
+    out[8] = b0 * a00 + b1 * a10 + b2 * a20 + b3 * a30;
+    out[9] = b0 * a01 + b1 * a11 + b2 * a21 + b3 * a31;
+    out[10] = b0 * a02 + b1 * a12 + b2 * a22 + b3 * a32;
+    out[11] = b0 * a03 + b1 * a13 + b2 * a23 + b3 * a33;
+
+    b0 = b[12];
+    b1 = b[13];
+    b2 = b[14];
+    b3 = b[15];
+    out[12] = b0 * a00 + b1 * a10 + b2 * a20 + b3 * a30;
+    out[13] = b0 * a01 + b1 * a11 + b2 * a21 + b3 * a31;
+    out[14] = b0 * a02 + b1 * a12 + b2 * a22 + b3 * a32;
+    out[15] = b0 * a03 + b1 * a13 + b2 * a23 + b3 * a33;
+    return out;
+  }
+
+  static multiplyMatrices(a, b) {
+
+    var result = new Matrix4();
+
+    var a11 = a[0], a12 = a[4], a13 = a[8], a14 = a[12];
+    var a21 = a[1], a22 = a[5], a23 = a[9], a24 = a[13];
+    var a31 = a[2], a32 = a[6], a33 = a[10], a34 = a[14];
+    var a41 = a[3], a42 = a[7], a43 = a[11], a44 = a[15];
+
+    var b11 = b[0], b12 = b[4], b13 = b[8], b14 = b[12];
+    var b21 = b[1], b22 = b[5], b23 = b[9], b24 = b[13];
+    var b31 = b[2], b32 = b[6], b33 = b[10], b34 = b[14];
+    var b41 = b[3], b42 = b[7], b43 = b[11], b44 = b[15];
+
+    result[0] = a11 * b11 + a12 * b21 + a13 * b31 + a14 * b41;
+    result[4] = a11 * b12 + a12 * b22 + a13 * b32 + a14 * b42;
+    result[8] = a11 * b13 + a12 * b23 + a13 * b33 + a14 * b43;
+    result[12] = a11 * b14 + a12 * b24 + a13 * b34 + a14 * b44;
+
+    result[1] = a21 * b11 + a22 * b21 + a23 * b31 + a24 * b41;
+    result[5] = a21 * b12 + a22 * b22 + a23 * b32 + a24 * b42;
+    result[9] = a21 * b13 + a22 * b23 + a23 * b33 + a24 * b43;
+    result[13] = a21 * b14 + a22 * b24 + a23 * b34 + a24 * b44;
+
+    result[2] = a31 * b11 + a32 * b21 + a33 * b31 + a34 * b41;
+    result[6] = a31 * b12 + a32 * b22 + a33 * b32 + a34 * b42;
+    result[10] = a31 * b13 + a32 * b23 + a33 * b33 + a34 * b43;
+    result[14] = a31 * b14 + a32 * b24 + a33 * b34 + a34 * b44;
+
+    result[3] = a41 * b11 + a42 * b21 + a43 * b31 + a44 * b41;
+    result[7] = a41 * b12 + a42 * b22 + a43 * b32 + a44 * b42;
+    result[11] = a41 * b13 + a42 * b23 + a43 * b33 + a44 * b43;
+    result[15] = a41 * b14 + a42 * b24 + a43 * b34 + a44 * b44;
+
+    return result;
+
   }
 }

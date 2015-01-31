@@ -865,6 +865,21 @@ var Matrix4 = (function (Array) {
   _inherits(Matrix4, Array);
 
   _prototypeProperties(Matrix4, {
+    multiplyVec4: {
+      value: function multiplyVec4(mat, vec) {
+        var result = new Vector4();
+
+        result.x = mat[0] * vec.x + mat[4] * vec.y + mat[8] * vec.z + mat[12] * vec.w;
+        result.y = mat[1] * vec.x + mat[5] * vec.y + mat[9] * vec.z + mat[13] * vec.w;
+        result.z = mat[2] * vec.x + mat[6] * vec.y + mat[10] * vec.z + mat[14] * vec.w;
+        result.w = mat[3] * vec.x + mat[7] * vec.y + mat[11] * vec.z + mat[15] * vec.w;
+
+        return result;
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
     multiply: {
       value: function multiply(a, b) {
         var out = new Matrix4();
@@ -923,21 +938,6 @@ var Matrix4 = (function (Array) {
         out[14] = b0 * a02 + b1 * a12 + b2 * a22 + b3 * a32;
         out[15] = b0 * a03 + b1 * a13 + b2 * a23 + b3 * a33;
         return out;
-      },
-      writable: true,
-      enumerable: true,
-      configurable: true
-    },
-    multiplyVec4: {
-      value: function multiplyVec4(mat, vec) {
-        var result = new Vector4();
-
-        result.x = mat[0] * vec.x + mat[4] * vec.y + mat[8] * vec.z + mat[12] * vec.w;
-        result.y = mat[1] * vec.x + mat[5] * vec.y + mat[9] * vec.z + mat[13] * vec.w;
-        result.z = mat[2] * vec.x + mat[6] * vec.y + mat[10] * vec.z + mat[14] * vec.w;
-        result.w = mat[3] * vec.x + mat[7] * vec.y + mat[11] * vec.z + mat[15] * vec.w;
-
-        return result;
       },
       writable: true,
       enumerable: true,
@@ -1282,12 +1282,6 @@ var Matrix4 = (function (Array) {
 
         return this;
       },
-      writable: true,
-      enumerable: true,
-      configurable: true
-    },
-    multiplyVec4: {
-      value: function multiplyVec4(vector) {},
       writable: true,
       enumerable: true,
       configurable: true
@@ -2930,11 +2924,9 @@ var Shader = (function () {
        * @returns {Shader}
        */
       value: function code(code, params) {
-        var variable;
-
         if (typeof params !== "undefined") {
           for (var i in params) {
-            variable = typeof params[i] === "object" ? params[i].name : params[i];
+            var variable = typeof params[i] === "object" ? params[i].name : params[i];
             code = code.replace(new RegExp("%" + i, "gm"), variable);
           }
         }
@@ -2977,11 +2969,10 @@ var Shader = (function () {
        */
       value: function toString() {
         var i,
-            variable,
             code = "";
 
         for (i in this._variables) {
-          variable = this._variables[i];
+          var variable = this._variables[i];
 
           if (variable instanceof Uniform) {
             code += "uniform " + variable.type + " " + variable.name + ";\n";
