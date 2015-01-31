@@ -15,7 +15,6 @@ class Object3D {
    * @method constructor
    */
   constructor() {
-    this.color = new Color();
 
     this.type = 'object';
 
@@ -34,6 +33,7 @@ class Object3D {
     this.buffers = {};
 
     this.material = new Material();
+    this.color = this.material.color;
 
     this.drawingMode = Common.drawingMode.LINE_STRIP;
     this.darwingFunction = Common.drawingFunctions.ARRAYS;

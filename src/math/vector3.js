@@ -127,6 +127,14 @@ class Vector3 extends Emitter {
     return out;
   }
 
+  copy(vector) {
+    this.x = vector.x;
+    this.y = vector.y;
+    this.z = vector.z;
+
+    return this;
+  }
+
   distance(vector) {
     var x = vector.x - this.x,
       y = vector.y - this.y,
@@ -141,6 +149,7 @@ class Vector3 extends Emitter {
 
   normalize() {
     this.divide(this.getLength());
+    return this;
   }
 
   dot(vector) {
@@ -153,6 +162,36 @@ class Vector3 extends Emitter {
 
   angle(vector) {
     return Math.acos(this.dot(vector) / this.getLength() / vector.getLength());
+  }
+
+  unproject(camera) {
+    var m = camera.getMatrix(),
+      p = camera.getProjection().clone();
+
+    var matrix = Matrix4.multiplyMatrices(m, p.invert());
+    return this.applyProjection(matrix);
+  }
+
+  /**
+   * @todo
+   * @param {Matrix4} matrix
+   */
+  applyMatrix4(matrix) {
+
+  }
+
+  applyProjection(matrix) {
+
+    var x = this.x, y = this.y, z = this.z;
+
+    var d = 1 / ( matrix[3] * x + matrix[7] * y + matrix[11] * z + matrix[15] ); // perspective divide
+
+    this.x = ( matrix[0] * x + matrix[4] * y + matrix[8] * z + matrix[12] ) * d;
+    this.y = ( matrix[1] * x + matrix[5] * y + matrix[9] * z + matrix[13] ) * d;
+    this.z = ( matrix[2] * x + matrix[6] * y + matrix[10] * z + matrix[14] ) * d;
+
+    return this;
+
   }
 
   toArray() {

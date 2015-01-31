@@ -28,6 +28,10 @@ class Emitter {
     return this;
   }
 
+  hasEvent(event) {
+    return typeof this._events[event] !== 'undefined' && this._events[event].length !== 0;
+  }
+
   /**
    * Adds a one time listener to the collection for a specified event. It will execute only once.
    * @public
@@ -97,7 +101,8 @@ class Emitter {
   removeAllListeners(event) {
     try {
       delete this._events[event];
-    } catch(e) {}
+    } catch (e) {
+    }
 
     return this;
   }
@@ -115,7 +120,8 @@ class Emitter {
   listeners(event) {
     try {
       return this._events[event];
-    } catch(e) {}
+    } catch (e) {
+    }
   }
 
   /**

@@ -43,17 +43,7 @@ class PointLight extends BaseLight {
       this.value(_this.position);
     });
 
-    vertexProgram.code(`
-vec3 %ld = normalize(%lp - %vp.xyz);
-float %sw = 0.0;
-
-if (bSpecular) {
-  %sw = pow(max(dot(reflect(-%ld, normal), normalize(-%vp.xyz)), 0.0), fShininess);
-}
-
-float %dw = max(dot(normal, -%ld), 0.0);
-%lw += %sc * %sw + %dc * %dw;
-            `, {
+    vertexProgram.code(`vec3 %ld = normalize(%lp - %vp.xyz); float %sw = 0.0, %dw = 0.0; if (bSpecular) { %sw = pow(max(dot(reflect(-%ld, normal), normalize(-%vp.xyz)), 0.0), fShininess); } if(bDiffuse) { %dw = max(dot(normal, -%ld), 0.0); } %lw += %sc * %sw + %dc * %dw;`, {
       sc: specularColor,
       dc: diffuseColor,
       lp: lightPosition,

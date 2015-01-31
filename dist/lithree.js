@@ -1,4 +1,42 @@
-(function(root) {"use strict";
+(function(root) {
+"use strict";
+
+var _get = function get(object, property, receiver) {
+  var desc = Object.getOwnPropertyDescriptor(object, property);
+
+  if (desc === undefined) {
+    var parent = Object.getPrototypeOf(object);
+
+    if (parent === null) {
+      return undefined;
+    } else {
+      return get(parent, property, receiver);
+    }
+  } else if ("value" in desc && desc.writable) {
+    return desc.value;
+  } else {
+    var getter = desc.get;
+    if (getter === undefined) {
+      return undefined;
+    }
+    return getter.call(receiver);
+  }
+};
+
+var _inherits = function (subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+  }
+  subClass.prototype = Object.create(superClass && superClass.prototype, {
+    constructor: {
+      value: subClass,
+      enumerable: false,
+      writable: true,
+      configurable: true
+    }
+  });
+  if (superClass) subClass.__proto__ = superClass;
+};
 
 var _prototypeProperties = function (child, staticProps, instanceProps) {
   if (staticProps) Object.defineProperties(child, staticProps);
@@ -23,7 +61,8 @@ var PerspectiveCamera = (function () {
     this.aspect = aspect;
     this.near = near;
     this.far = far;
-    this.matrix = new Matrix4();
+    this.projectionMatrix = new Matrix4();
+    this.viewMatrix = new Matrix4();
     this.lookAt = new Vector3();
     this.position = new Vector3();
     this.rotation = new Vector3();
@@ -54,15 +93,17 @@ var PerspectiveCamera = (function () {
       enumerable: true,
       configurable: true
     },
-    updatePerspective: {
+    getProjection: {
 
       /**
-       * @method updatePerspective
+       * @method getProjection
        */
-      value: function updatePerspective() {
+      value: function getProjection() {
         var fovy = 2 * Math.atan(Math.tan(this.fovy * 0.5) / this._zoom);
-        this.matrix.identity();
-        this.matrix.perspective(fovy, this.aspect, this.near, this.far);
+        this.projectionMatrix.identity();
+        this.projectionMatrix.perspective(fovy, this.aspect, this.near, this.far);
+
+        return this.projectionMatrix;
       },
       writable: true,
       enumerable: true,
@@ -70,7 +111,7 @@ var PerspectiveCamera = (function () {
     },
     getMatrix: {
       value: function getMatrix() {
-        var matrix = new Matrix4();
+        var matrix = this.viewMatrix;
 
         matrix.identity();
         matrix.translate(this.position);
@@ -87,12 +128,7 @@ var PerspectiveCamera = (function () {
   });
 
   return PerspectiveCamera;
-})();"use strict";
-
-var _prototypeProperties = function (child, staticProps, instanceProps) {
-  if (staticProps) Object.defineProperties(child, staticProps);
-  if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-};
+})();
 
 var Color = (function () {
   function Color() {
@@ -171,7 +207,7 @@ var Color = (function () {
   });
 
   return Color;
-})();"use strict";
+})();
 
 var Common = {};
 
@@ -196,12 +232,7 @@ if (!WebGLRenderingContext) {
       ELEMENTS: 0
     }
   };
-}"use strict";
-
-var _prototypeProperties = function (child, staticProps, instanceProps) {
-  if (staticProps) Object.defineProperties(child, staticProps);
-  if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-};
+}
 
 /**
  * Creates a new instance of Emitter.
@@ -233,6 +264,14 @@ var Emitter = (function () {
         this._events[event] = this._events[event] || [];
         this._events[event].push(listener);
         return this;
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    hasEvent: {
+      value: function hasEvent(event) {
+        return typeof this._events[event] !== "undefined" && this._events[event].length !== 0;
       },
       writable: true,
       enumerable: true,
@@ -384,16 +423,178 @@ var Emitter = (function () {
   return Emitter;
 })();
 
-/**
- * Exports Emitter
- */"use strict";
+var Interactive = (function (Emitter) {
+  function Interactive(renderer) {
+    _get(Object.getPrototypeOf(Interactive.prototype), "constructor", this).call(this);
+    this.isDragging = false;
+    this.lastDown = 0;
+    this.clickPrecisionTime = 300;
+    this.lastPosition = { x: 0, y: 0 };
+    this.renderer = renderer;
 
-function computeNormal() {}"use strict";
+    this._attachListeners();
+  }
 
-var _prototypeProperties = function (child, staticProps, instanceProps) {
-  if (staticProps) Object.defineProperties(child, staticProps);
-  if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-};
+  _inherits(Interactive, Emitter);
+
+  _prototypeProperties(Interactive, null, {
+    updatePosition: {
+      value: function updatePosition(x, y) {
+        this.lastPosition.x = x - this.renderer.canvas.offsetLeft;
+        this.lastPosition.y = y - this.renderer.canvas.offsetTop;
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    unproject: {
+      value: function unproject(x, y, z) {
+        var camera = this.renderer.camera;
+
+        var vector = new LiThree.Math.Vector3(x / renderer.width * 2 - 1, -(y / renderer.height) * 2 + 1, z);
+
+        vector.unproject(camera);
+
+        var dir = vector.subtract(camera.position).normalize();
+        var distance = -camera.position.z / dir.z;
+
+        var position = camera.position.clone().add(dir.multiply(distance));
+        position.x *= -1;
+        position.y *= -1;
+        return position;
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    _attachListeners: {
+      value: function AttachListeners() {
+        var dom = this.renderer.canvas;
+        var _this = this;
+
+        var unproject = function unproject(z) {
+          return _this.unproject(_this.lastPosition.x, _this.lastPosition.y, z);
+        };
+
+        dom.addEventListener("mousedown", function (e) {
+          e.preventDefault();
+          _this.isDragging = true;
+          _this.updatePosition(e.clientX, e.clientY);
+
+          if (_this.hasEvent("start")) {
+            _this.emit("start", _this.lastPosition, unproject);
+          }
+
+          _this.lastDown = Date.now();
+        });
+
+        dom.addEventListener("mousemove", function (e) {
+          e.preventDefault();
+
+          if (_this.isDragging) {
+            _this.updatePosition(e.clientX, e.clientY);
+
+            if (_this.hasEvent("drag")) {
+              _this.emit("drag", _this.lastPosition, unproject);
+            }
+          } else if (_this.hasEvent("move")) {
+            _this.updatePosition(e.clientX, e.clientY);
+
+            _this.emit("move", _this.lastPosition, unproject);
+          }
+        });
+
+        dom.addEventListener("mouseup", function (e) {
+          e.preventDefault();
+
+          _this.isDragging = false;
+          _this.updatePosition(e.clientX, e.clientY);
+
+          if (_this.hasEvent("click") && Date.now() - _this.lastDown < _this.clickPrecisionTime) {
+            _this.emit("click", _this.lastPosition, unproject);
+          } else if (_this.hasEvent("end")) {
+            _this.emit("end", _this.lastPosition, unproject);
+          }
+        });
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    }
+  });
+
+  return Interactive;
+})(Emitter);
+
+function computeNormal() {}
+var RayCaster = (function () {
+  function RayCaster(origin, direction) {
+    var near = arguments[2] === undefined ? 0 : arguments[2];
+    var far = arguments[3] === undefined ? Infinity : arguments[3];
+    this.ray = new Ray(origin, direction);
+
+    this.near = near;
+
+    this.far = far;
+
+    this.params = {
+      Sprite: {},
+      Mesh: {},
+      PointCloud: { threshold: 1 },
+      LOD: {},
+      Line: {}
+    };
+
+    this.precision = 0.0001;
+    this.linePrecision = 1;
+  }
+
+  _prototypeProperties(RayCaster, {
+    createFromCamera: {
+      value: function createFromCamera(coords, camera) {
+        if (camera instanceof PerspectiveCamera) {
+          var origin = new Vector3();
+          origin.copy(camera.position);
+
+          var direction = new Vector3();
+          direction.set(coords.x, coords.y, 0.5).unproject(camera).sub(camera.position).normalize();
+
+          return new RayCaster(origin, direction);
+        } else {
+          throw "Given camera cannot be ray casted.";
+        }
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    }
+  }, {
+    descSort: {
+      value: function descSort(a, b) {
+        return a.distance - b.distance;
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    intersectObject: {
+      value: function intersectObject(object, recursive) {},
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    set: {
+      value: function set(origin, direction) {
+        this.ray.set(origin, direction);
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    }
+  });
+
+  return RayCaster;
+})();
 
 var World = (function () {
   function World() {
@@ -429,55 +630,13 @@ var World = (function () {
   });
 
   return World;
-})();"use strict";
+})();
 
 var lightId = 0;
 
 var BaseLight = function BaseLight() {
   this.index = lightId++;
   this.type = "light";
-};"use strict";
-
-var _prototypeProperties = function (child, staticProps, instanceProps) {
-  if (staticProps) Object.defineProperties(child, staticProps);
-  if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-};
-
-var _get = function get(object, property, receiver) {
-  var desc = Object.getOwnPropertyDescriptor(object, property);
-
-  if (desc === undefined) {
-    var parent = Object.getPrototypeOf(object);
-
-    if (parent === null) {
-      return undefined;
-    } else {
-      return get(parent, property, receiver);
-    }
-  } else if ("value" in desc && desc.writable) {
-    return desc.value;
-  } else {
-    var getter = desc.get;
-    if (getter === undefined) {
-      return undefined;
-    }
-    return getter.call(receiver);
-  }
-};
-
-var _inherits = function (subClass, superClass) {
-  if (typeof superClass !== "function" && superClass !== null) {
-    throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
-  }
-  subClass.prototype = Object.create(superClass && superClass.prototype, {
-    constructor: {
-      value: subClass,
-      enumerable: false,
-      writable: true,
-      configurable: true
-    }
-  });
-  if (superClass) subClass.__proto__ = superClass;
 };
 
 /**
@@ -533,49 +692,7 @@ var DirectionalLight = (function (BaseLight) {
   });
 
   return DirectionalLight;
-})(BaseLight);"use strict";
-
-var _prototypeProperties = function (child, staticProps, instanceProps) {
-  if (staticProps) Object.defineProperties(child, staticProps);
-  if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-};
-
-var _get = function get(object, property, receiver) {
-  var desc = Object.getOwnPropertyDescriptor(object, property);
-
-  if (desc === undefined) {
-    var parent = Object.getPrototypeOf(object);
-
-    if (parent === null) {
-      return undefined;
-    } else {
-      return get(parent, property, receiver);
-    }
-  } else if ("value" in desc && desc.writable) {
-    return desc.value;
-  } else {
-    var getter = desc.get;
-    if (getter === undefined) {
-      return undefined;
-    }
-    return getter.call(receiver);
-  }
-};
-
-var _inherits = function (subClass, superClass) {
-  if (typeof superClass !== "function" && superClass !== null) {
-    throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
-  }
-  subClass.prototype = Object.create(superClass && superClass.prototype, {
-    constructor: {
-      value: subClass,
-      enumerable: false,
-      writable: true,
-      configurable: true
-    }
-  });
-  if (superClass) subClass.__proto__ = superClass;
-};
+})(BaseLight);
 
 /**
  * Point light class
@@ -621,7 +738,7 @@ var PointLight = (function (BaseLight) {
           this.value(_this.position);
         });
 
-        vertexProgram.code("\nvec3 %ld = normalize(%lp - %vp.xyz);\nfloat %sw = 0.0;\n\nif (bSpecular) {\n  %sw = pow(max(dot(reflect(-%ld, normal), normalize(-%vp.xyz)), 0.0), fShininess);\n}\n\nfloat %dw = max(dot(normal, -%ld), 0.0);\n%lw += %sc * %sw + %dc * %dw;\n            ", {
+        vertexProgram.code("vec3 %ld = normalize(%lp - %vp.xyz); float %sw = 0.0, %dw = 0.0; if (bSpecular) { %sw = pow(max(dot(reflect(-%ld, normal), normalize(-%vp.xyz)), 0.0), fShininess); } if(bDiffuse) { %dw = max(dot(normal, -%ld), 0.0); } %lw += %sc * %sw + %dc * %dw;", {
           sc: specularColor,
           dc: diffuseColor,
           lp: lightPosition,
@@ -640,7 +757,7 @@ var PointLight = (function (BaseLight) {
   });
 
   return PointLight;
-})(BaseLight);"use strict";
+})(BaseLight);
 
 var Material = function Material() {
   /**
@@ -666,26 +783,22 @@ var Material = function Material() {
    * @type {boolean}
    */
   this.specular = true;
-};"use strict";
 
-var _prototypeProperties = function (child, staticProps, instanceProps) {
-  if (staticProps) Object.defineProperties(child, staticProps);
-  if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-};
+  /**
+   * Does this material has diffuse lighting ?
+   *
+   * @property diffuse
+   * @type {boolean}
+   */
+  this.diffuse = true;
 
-var _inherits = function (subClass, superClass) {
-  if (typeof superClass !== "function" && superClass !== null) {
-    throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
-  }
-  subClass.prototype = Object.create(superClass && superClass.prototype, {
-    constructor: {
-      value: subClass,
-      enumerable: false,
-      writable: true,
-      configurable: true
-    }
-  });
-  if (superClass) subClass.__proto__ = superClass;
+  /**
+   * Color of this material
+   *
+   * @property color
+   * @type {Color}
+   */
+  this.color = new Color();
 };
 
 var Matrix3 = (function (Array) {
@@ -733,27 +846,7 @@ var Matrix3 = (function (Array) {
   });
 
   return Matrix3;
-})(Array);"use strict";
-
-var _prototypeProperties = function (child, staticProps, instanceProps) {
-  if (staticProps) Object.defineProperties(child, staticProps);
-  if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-};
-
-var _inherits = function (subClass, superClass) {
-  if (typeof superClass !== "function" && superClass !== null) {
-    throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
-  }
-  subClass.prototype = Object.create(superClass && superClass.prototype, {
-    constructor: {
-      value: subClass,
-      enumerable: false,
-      writable: true,
-      configurable: true
-    }
-  });
-  if (superClass) subClass.__proto__ = superClass;
-};
+})(Array);
 
 var EPSILON = 0.00001;
 
@@ -830,6 +923,85 @@ var Matrix4 = (function (Array) {
         out[14] = b0 * a02 + b1 * a12 + b2 * a22 + b3 * a32;
         out[15] = b0 * a03 + b1 * a13 + b2 * a23 + b3 * a33;
         return out;
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    multiplyVec4: {
+      value: function multiplyVec4(mat, vec) {
+        var result = new Vector4();
+
+        result.x = mat[0] * vec.x + mat[4] * vec.y + mat[8] * vec.z + mat[12] * vec.w;
+        result.y = mat[1] * vec.x + mat[5] * vec.y + mat[9] * vec.z + mat[13] * vec.w;
+        result.z = mat[2] * vec.x + mat[6] * vec.y + mat[10] * vec.z + mat[14] * vec.w;
+        result.w = mat[3] * vec.x + mat[7] * vec.y + mat[11] * vec.z + mat[15] * vec.w;
+
+        return result;
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    multiplyMatrices: {
+      value: function multiplyMatrices(a, b) {
+        var result = new Matrix4();
+
+        var a11 = a[0],
+            a12 = a[4],
+            a13 = a[8],
+            a14 = a[12];
+        var a21 = a[1],
+            a22 = a[5],
+            a23 = a[9],
+            a24 = a[13];
+        var a31 = a[2],
+            a32 = a[6],
+            a33 = a[10],
+            a34 = a[14];
+        var a41 = a[3],
+            a42 = a[7],
+            a43 = a[11],
+            a44 = a[15];
+
+        var b11 = b[0],
+            b12 = b[4],
+            b13 = b[8],
+            b14 = b[12];
+        var b21 = b[1],
+            b22 = b[5],
+            b23 = b[9],
+            b24 = b[13];
+        var b31 = b[2],
+            b32 = b[6],
+            b33 = b[10],
+            b34 = b[14];
+        var b41 = b[3],
+            b42 = b[7],
+            b43 = b[11],
+            b44 = b[15];
+
+        result[0] = a11 * b11 + a12 * b21 + a13 * b31 + a14 * b41;
+        result[4] = a11 * b12 + a12 * b22 + a13 * b32 + a14 * b42;
+        result[8] = a11 * b13 + a12 * b23 + a13 * b33 + a14 * b43;
+        result[12] = a11 * b14 + a12 * b24 + a13 * b34 + a14 * b44;
+
+        result[1] = a21 * b11 + a22 * b21 + a23 * b31 + a24 * b41;
+        result[5] = a21 * b12 + a22 * b22 + a23 * b32 + a24 * b42;
+        result[9] = a21 * b13 + a22 * b23 + a23 * b33 + a24 * b43;
+        result[13] = a21 * b14 + a22 * b24 + a23 * b34 + a24 * b44;
+
+        result[2] = a31 * b11 + a32 * b21 + a33 * b31 + a34 * b41;
+        result[6] = a31 * b12 + a32 * b22 + a33 * b32 + a34 * b42;
+        result[10] = a31 * b13 + a32 * b23 + a33 * b33 + a34 * b43;
+        result[14] = a31 * b14 + a32 * b24 + a33 * b34 + a34 * b44;
+
+        result[3] = a41 * b11 + a42 * b21 + a43 * b31 + a44 * b41;
+        result[7] = a41 * b12 + a42 * b22 + a43 * b32 + a44 * b42;
+        result[11] = a41 * b13 + a42 * b23 + a43 * b33 + a44 * b43;
+        result[15] = a41 * b14 + a42 * b24 + a43 * b34 + a44 * b44;
+
+        return result;
       },
       writable: true,
       enumerable: true,
@@ -1114,6 +1286,71 @@ var Matrix4 = (function (Array) {
       enumerable: true,
       configurable: true
     },
+    multiplyVec4: {
+      value: function multiplyVec4(vector) {},
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    invert: {
+      value: function invert() {
+        // Cache the matrix values (makes for huge speed increases!)
+        var a00 = this[0],
+            a01 = this[1],
+            a02 = this[2],
+            a03 = this[3];
+        var a10 = this[4],
+            a11 = this[5],
+            a12 = this[6],
+            a13 = this[7];
+        var a20 = this[8],
+            a21 = this[9],
+            a22 = this[10],
+            a23 = this[11];
+        var a30 = this[12],
+            a31 = this[13],
+            a32 = this[14],
+            a33 = this[15];
+
+        var b00 = a00 * a11 - a01 * a10;
+        var b01 = a00 * a12 - a02 * a10;
+        var b02 = a00 * a13 - a03 * a10;
+        var b03 = a01 * a12 - a02 * a11;
+        var b04 = a01 * a13 - a03 * a11;
+        var b05 = a02 * a13 - a03 * a12;
+        var b06 = a20 * a31 - a21 * a30;
+        var b07 = a20 * a32 - a22 * a30;
+        var b08 = a20 * a33 - a23 * a30;
+        var b09 = a21 * a32 - a22 * a31;
+        var b10 = a21 * a33 - a23 * a31;
+        var b11 = a22 * a33 - a23 * a32;
+
+        // Calculate the determinant (inlined to avoid double-caching)
+        var invDet = 1 / (b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06);
+
+        this[0] = (a11 * b11 - a12 * b10 + a13 * b09) * invDet;
+        this[1] = (-a01 * b11 + a02 * b10 - a03 * b09) * invDet;
+        this[2] = (a31 * b05 - a32 * b04 + a33 * b03) * invDet;
+        this[3] = (-a21 * b05 + a22 * b04 - a23 * b03) * invDet;
+        this[4] = (-a10 * b11 + a12 * b08 - a13 * b07) * invDet;
+        this[5] = (a00 * b11 - a02 * b08 + a03 * b07) * invDet;
+        this[6] = (-a30 * b05 + a32 * b02 - a33 * b01) * invDet;
+        this[7] = (a20 * b05 - a22 * b02 + a23 * b01) * invDet;
+        this[8] = (a10 * b10 - a11 * b08 + a13 * b06) * invDet;
+        this[9] = (-a00 * b10 + a01 * b08 - a03 * b06) * invDet;
+        this[10] = (a30 * b04 - a31 * b02 + a33 * b00) * invDet;
+        this[11] = (-a20 * b04 + a21 * b02 - a23 * b00) * invDet;
+        this[12] = (-a10 * b09 + a11 * b07 - a12 * b06) * invDet;
+        this[13] = (a00 * b09 - a01 * b07 + a02 * b06) * invDet;
+        this[14] = (-a30 * b03 + a31 * b01 - a32 * b00) * invDet;
+        this[15] = (a20 * b03 - a21 * b01 + a22 * b00) * invDet;
+
+        return this;
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
     toInverseMat3: {
 
       /**
@@ -1200,6 +1437,20 @@ var Matrix4 = (function (Array) {
       enumerable: true,
       configurable: true
     },
+    clone: {
+      value: function clone() {
+        var cloned = new Matrix4();
+
+        for (var i = 16; i--;) {
+          cloned[i] = this[i];
+        }
+
+        return cloned;
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
     toArray: {
 
       /**
@@ -1223,49 +1474,140 @@ var Matrix4 = (function (Array) {
   });
 
   return Matrix4;
-})(Array);"use strict";
+})(Array);
 
-var _prototypeProperties = function (child, staticProps, instanceProps) {
-  if (staticProps) Object.defineProperties(child, staticProps);
-  if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-};
-
-var _get = function get(object, property, receiver) {
-  var desc = Object.getOwnPropertyDescriptor(object, property);
-
-  if (desc === undefined) {
-    var parent = Object.getPrototypeOf(object);
-
-    if (parent === null) {
-      return undefined;
-    } else {
-      return get(parent, property, receiver);
-    }
-  } else if ("value" in desc && desc.writable) {
-    return desc.value;
-  } else {
-    var getter = desc.get;
-    if (getter === undefined) {
-      return undefined;
-    }
-    return getter.call(receiver);
+var Ray = (function () {
+  function Ray() {
+    var _this = this;
+    var origin = arguments[0] === undefined ? new Vector3() : arguments[0];
+    var direction = arguments[1] === undefined ? new Vector3() : arguments[1];
+    return (function () {
+      _this.set(origin, direction);
+    })();
   }
-};
 
-var _inherits = function (subClass, superClass) {
-  if (typeof superClass !== "function" && superClass !== null) {
-    throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
-  }
-  subClass.prototype = Object.create(superClass && superClass.prototype, {
-    constructor: {
-      value: subClass,
-      enumerable: false,
+  _prototypeProperties(Ray, null, {
+    set: {
+      value: function set(origin, direction) {
+        this.origin = origin;
+        this.direction = direction;
+      },
       writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    copy: {
+      value: function copy(ray) {
+        this.origin.copy(ray.origin);
+        this.direction.copy(ray.direction);
+
+        return this;
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    at: {
+      value: function at(t) {
+        var result = new Vector3();
+
+        return result.copy(this.direction).multiply(t).add(this.origin);
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    applyMatrix4: {
+      value: function applyMatrix4(matrix) {
+        this.direction.add(this.origin).applyMatrix4(matrix);
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    intersectTriangle: {
+      value: function intersectTriangle(a, b, c, backfaceCulling, optionalTarget) {
+        // from http://www.geometrictools.com/LibMathematics/Intersection/Wm5IntrRay3Triangle3.cpp
+
+        var diff = new Vector3();
+        var edge1 = new Vector3();
+        var edge2 = new Vector3();
+        var normal = new Vector3();
+
+        edge1.copy(b).sub(a);
+        edge2.copy(c).sub(a);
+
+        normal.copy(edge1).cross(edge2);
+
+        // Solve Q + t*D = b1*E1 + b2*E2 (Q = kDiff, D = ray direction,
+        // E1 = kEdge1, E2 = kEdge2, N = Cross(E1,E2)) by
+        //   |Dot(D,N)|*b1 = sign(Dot(D,N))*Dot(D,Cross(Q,E2))
+        //   |Dot(D,N)|*b2 = sign(Dot(D,N))*Dot(D,Cross(E1,Q))
+        //   |Dot(D,N)|*t = -sign(Dot(D,N))*Dot(Q,N)
+        var DdN = this.direction.dot(normal);
+        var sign;
+
+        if (DdN > 0) {
+          if (backfaceCulling) return null;
+          sign = 1;
+        } else if (DdN < 0) {
+          sign = -1;
+          DdN = -DdN;
+        } else {
+          return null;
+        }
+
+        diff.copy(this.origin).sub(a);
+
+        var DdQxE2 = sign * this.direction.dot(edge2.copy(diff).cross(edge2));
+
+        // b1 < 0, no intersection
+        if (DdQxE2 < 0) {
+          return null;
+        }
+
+        var DdE1xQ = sign * this.direction.dot(edge1.cross(diff));
+
+        // b2 < 0, no intersection
+        if (DdE1xQ < 0) {
+          return null;
+        }
+
+        // b1+b2 > 1, no intersection
+        if (DdQxE2 + DdE1xQ > DdN) {
+          return null;
+        }
+
+        // Line intersects triangle, check if ray does.
+        var QdN = -sign * diff.dot(normal);
+
+        // t < 0, no intersection
+        if (QdN < 0) {
+          return null;
+        }
+
+        // Ray intersects triangle.
+        return this.at(QdN / DdN, optionalTarget);
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    clone: {
+      value: function clone() {
+        var ray = new Ray();
+        ray.copy(this);
+
+        return ray;
+      },
+      writable: true,
+      enumerable: true,
       configurable: true
     }
   });
-  if (superClass) subClass.__proto__ = superClass;
-};
+
+  return Ray;
+})();
 
 var Vector3 = (function (Emitter) {
   function Vector3() {
@@ -1433,6 +1775,18 @@ var Vector3 = (function (Emitter) {
       enumerable: true,
       configurable: true
     },
+    copy: {
+      value: function copy(vector) {
+        this.x = vector.x;
+        this.y = vector.y;
+        this.z = vector.z;
+
+        return this;
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
     distance: {
       value: function distance(vector) {
         var x = vector.x - this.x,
@@ -1456,6 +1810,7 @@ var Vector3 = (function (Emitter) {
     normalize: {
       value: function normalize() {
         this.divide(this.getLength());
+        return this;
       },
       writable: true,
       enumerable: true,
@@ -1485,6 +1840,47 @@ var Vector3 = (function (Emitter) {
       enumerable: true,
       configurable: true
     },
+    unproject: {
+      value: function unproject(camera) {
+        var m = camera.getMatrix(),
+            p = camera.getProjection().clone();
+
+        var matrix = Matrix4.multiplyMatrices(m, p.invert());
+        return this.applyProjection(matrix);
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    applyMatrix4: {
+
+      /**
+       * @todo
+       * @param {Matrix4} matrix
+       */
+      value: function applyMatrix4(matrix) {},
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    applyProjection: {
+      value: function applyProjection(matrix) {
+        var x = this.x,
+            y = this.y,
+            z = this.z;
+
+        var d = 1 / (matrix[3] * x + matrix[7] * y + matrix[11] * z + matrix[15]); // perspective divide
+
+        this.x = (matrix[0] * x + matrix[4] * y + matrix[8] * z + matrix[12]) * d;
+        this.y = (matrix[1] * x + matrix[5] * y + matrix[9] * z + matrix[13]) * d;
+        this.z = (matrix[2] * x + matrix[6] * y + matrix[10] * z + matrix[14]) * d;
+
+        return this;
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
     toArray: {
       value: function toArray() {
         return [this.x, this.y, this.z];
@@ -1496,7 +1892,100 @@ var Vector3 = (function (Emitter) {
   });
 
   return Vector3;
-})(Emitter);"use strict";
+})(Emitter);
+
+var Vector4 = (function (Emitter) {
+  function Vector4() {
+    var x = arguments[0] === undefined ? 0 : arguments[0];
+    var y = arguments[1] === undefined ? 0 : arguments[1];
+    var z = arguments[2] === undefined ? 0 : arguments[2];
+    var w = arguments[3] === undefined ? 0 : arguments[3];
+    _get(Object.getPrototypeOf(Vector4.prototype), "constructor", this).call(this);
+
+    this._x = x;
+    this._y = y;
+    this._z = z;
+    this._w = w;
+  }
+
+  _inherits(Vector4, Emitter);
+
+  _prototypeProperties(Vector4, null, {
+    clone: {
+      value: function clone() {
+        return new Vector3(this.x, this.y, this.z);
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    x: {
+      get: function () {
+        return this._x;
+      },
+      set: function (x) {
+        this._x = x;
+        this.emit("update");
+      },
+      enumerable: true,
+      configurable: true
+    },
+    y: {
+      get: function () {
+        return this._y;
+      },
+      set: function (y) {
+        this._y = y;
+        this.emit("update");
+      },
+      enumerable: true,
+      configurable: true
+    },
+    z: {
+      get: function () {
+        return this._z;
+      },
+      set: function (z) {
+        this._z = z;
+        this.emit("update");
+      },
+      enumerable: true,
+      configurable: true
+    },
+    w: {
+      get: function () {
+        return this._w;
+      },
+      set: function (w) {
+        this._w = w;
+        this.emit("update");
+      },
+      enumerable: true,
+      configurable: true
+    },
+    set: {
+      value: function set(x, y, z, w) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.w = w;
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    toArray: {
+      value: function toArray() {
+        return [this.x, this.y, this.z, this.w];
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    }
+  });
+
+  return Vector4;
+})(Emitter);
 
 /**
  * Circle factory
@@ -1538,7 +2027,8 @@ function CircleFactory() {
   circle.drawingMode = Common.drawingMode.TRIANGLE_FAN;
 
   return circle;
-}"use strict";
+}
+
 
 /**
  * Cube factory
@@ -1602,7 +2092,8 @@ function CubeFactory() {
   cube.drawingMode = Common.drawingMode.TRIANGLES;
 
   return cube;
-}"use strict";
+}
+
 
 /**
  * Cylinder factory
@@ -1655,7 +2146,8 @@ function CylinderFactory() {
   cylinder.drawingMode = Common.drawingMode.TRIANGLE_STRIP;
 
   return cylinder;
-}"use strict";
+}
+
 
 /**
  * Sphere factory
@@ -1729,12 +2221,8 @@ function SphereFactory() {
   sphere.drawingMode = Common.drawingMode.TRIANGLES;
 
   return sphere;
-}"use strict";
+}
 
-var _prototypeProperties = function (child, staticProps, instanceProps) {
-  if (staticProps) Object.defineProperties(child, staticProps);
-  if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-};
 
 var objId = 0;
 
@@ -1745,8 +2233,6 @@ var Object3D = (function () {
    * @method constructor
    */
   function Object3D() {
-    this.color = new Color();
-
     this.type = "object";
 
     this.scale = new Vector3();
@@ -1764,6 +2250,7 @@ var Object3D = (function () {
     this.buffers = {};
 
     this.material = new Material();
+    this.color = this.material.color;
 
     this.drawingMode = Common.drawingMode.LINE_STRIP;
     this.darwingFunction = Common.drawingFunctions.ARRAYS;
@@ -1796,7 +2283,7 @@ var Object3D = (function () {
   });
 
   return Object3D;
-})();"use strict";
+})();
 
 /**
  * Renderer base class
@@ -1808,48 +2295,6 @@ var Renderer = function Renderer() {
   var height = arguments[1] === undefined ? 480 : arguments[1];
   this.width = width;
   this.height = height;
-};"use strict";
-
-var _prototypeProperties = function (child, staticProps, instanceProps) {
-  if (staticProps) Object.defineProperties(child, staticProps);
-  if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-};
-
-var _get = function get(object, property, receiver) {
-  var desc = Object.getOwnPropertyDescriptor(object, property);
-
-  if (desc === undefined) {
-    var parent = Object.getPrototypeOf(object);
-
-    if (parent === null) {
-      return undefined;
-    } else {
-      return get(parent, property, receiver);
-    }
-  } else if ("value" in desc && desc.writable) {
-    return desc.value;
-  } else {
-    var getter = desc.get;
-    if (getter === undefined) {
-      return undefined;
-    }
-    return getter.call(receiver);
-  }
-};
-
-var _inherits = function (subClass, superClass) {
-  if (typeof superClass !== "function" && superClass !== null) {
-    throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
-  }
-  subClass.prototype = Object.create(superClass && superClass.prototype, {
-    constructor: {
-      value: subClass,
-      enumerable: false,
-      writable: true,
-      configurable: true
-    }
-  });
-  if (superClass) subClass.__proto__ = superClass;
 };
 
 /**
@@ -1873,7 +2318,7 @@ var WebGLRenderer = (function (Renderer) {
     this.camera = new PerspectiveCamera();
 
     this.camera.aspect = this.width / this.height;
-    this.camera.updatePerspective();
+    this.camera.getProjection();
 
     this.canvas = document.createElement("canvas");
     this.canvas.setAttribute("width", this.width);
@@ -1925,13 +2370,21 @@ var WebGLRenderer = (function (Renderer) {
         for (var i = this.world.children.length; i--;) {
           var object = this.world.children[i];
 
-          object.buffers.vertices = this.gl.createBuffer();
-          object.buffers.vertexColor = this.gl.createBuffer();
-          object.buffers.normals = this.gl.createBuffer();
-          object.buffers.vertexIndex = this.gl.createBuffer();
-
-          object.shader = new ShaderProgrammer(this, object);
+          this.initShape(object);
         }
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    initShape: {
+      value: function initShape(object) {
+        object.buffers.vertices = this.gl.createBuffer();
+        object.buffers.vertexColor = this.gl.createBuffer();
+        object.buffers.normals = this.gl.createBuffer();
+        object.buffers.vertexIndex = this.gl.createBuffer();
+
+        object.shader = new ShaderProgrammer(this, object);
       },
       writable: true,
       enumerable: true,
@@ -1968,12 +2421,7 @@ var WebGLRenderer = (function (Renderer) {
   });
 
   return WebGLRenderer;
-})(Renderer);"use strict";
-
-var _prototypeProperties = function (child, staticProps, instanceProps) {
-  if (staticProps) Object.defineProperties(child, staticProps);
-  if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-};
+})(Renderer);
 
 /**
  * Class Attribute for vertex program
@@ -2053,12 +2501,7 @@ var Attribute = (function () {
   });
 
   return Attribute;
-})();"use strict";
-
-var _prototypeProperties = function (child, staticProps, instanceProps) {
-  if (staticProps) Object.defineProperties(child, staticProps);
-  if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-};
+})();
 
 /**
  * This class is used to create and compile a glsl program.
@@ -2170,7 +2613,7 @@ var ShaderProgrammer = (function () {
         }, "vNormal");
 
         var pMatrix = vertexProgram.uniform("mat4", function () {
-          this.value(renderer.camera.matrix);
+          this.value(renderer.camera.projectionMatrix);
         }, "pMatrix");
 
         var mvMatrix = vertexProgram.uniform("mat4", function () {
@@ -2204,7 +2647,7 @@ var ShaderProgrammer = (function () {
         fragmentProgram.precision("mediump", "float");
 
         var color = fragmentProgram.uniform("vec3", function () {
-          this.value(obj.color.toArray());
+          this.value(obj.material.color.toArray());
         }, "vColor");
 
         if (world.lights.length > 0) {
@@ -2225,6 +2668,10 @@ var ShaderProgrammer = (function () {
           vertexProgram.uniform("bool", function () {
             this.value(obj.material.specular);
           }, "bSpecular");
+
+          vertexProgram.uniform("bool", function () {
+            this.value(obj.material.diffuse);
+          }, "bDiffuse");
 
           vertexProgram.code("vec3 transformedNormal = nMatrix * vNormal;");
           vertexProgram.code("vec3 normal = normalize(transformedNormal);");
@@ -2335,12 +2782,7 @@ var ShaderProgrammer = (function () {
   });
 
   return ShaderProgrammer;
-})();"use strict";
-
-var _prototypeProperties = function (child, staticProps, instanceProps) {
-  if (staticProps) Object.defineProperties(child, staticProps);
-  if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-};
+})();
 
 var tmpId = 0;
 
@@ -2395,13 +2837,13 @@ var Shader = (function () {
        * @returns {Uniform}
        */
       value: function uniform(type) {
-        var _this = this;
+        var _this2 = this;
         var callback = arguments[1] === undefined ? null : arguments[1];
         var name = arguments[2] === undefined ? "tmp_" + tmpId++ : arguments[2];
         return (function () {
-          var uniform = new Uniform(type, name, _this._programmer);
+          var uniform = new Uniform(type, name, _this2._programmer);
           uniform.onupdate = callback;
-          _this._variables[name] = uniform;
+          _this2._variables[name] = uniform;
           return uniform;
         })();
       },
@@ -2421,13 +2863,13 @@ var Shader = (function () {
        * @returns {Attribute}
        */
       value: function attribute(type) {
-        var _this2 = this;
+        var _this3 = this;
         var callback = arguments[1] === undefined ? null : arguments[1];
         var name = arguments[2] === undefined ? "tmp_" + tmpId++ : arguments[2];
         return (function () {
-          var attribute = new Attribute(type, name, _this2._programmer);
+          var attribute = new Attribute(type, name, _this3._programmer);
           attribute.onupdate = callback;
-          _this2._variables[name] = attribute;
+          _this3._variables[name] = attribute;
           return attribute;
         })();
       },
@@ -2446,12 +2888,12 @@ var Shader = (function () {
        * @returns {Object}
        */
       value: function varying(type) {
-        var _this3 = this;
+        var _this4 = this;
         var name = arguments[1] === undefined ? "tmp_" + tmpId++ : arguments[1];
         return (function () {
-          _this3._variables[name] = { name: name, type: type, prefix: "varying" };
+          _this4._variables[name] = { name: name, type: type, prefix: "varying" };
 
-          return _this3._variables[name];
+          return _this4._variables[name];
         })();
       },
       writable: true,
@@ -2561,12 +3003,7 @@ var Shader = (function () {
   });
 
   return Shader;
-})();"use strict";
-
-var _prototypeProperties = function (child, staticProps, instanceProps) {
-  if (staticProps) Object.defineProperties(child, staticProps);
-  if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-};
+})();
 
 var Uniform = (function () {
   /**
@@ -2658,11 +3095,19 @@ var Uniform = (function () {
   });
 
   return Uniform;
-})();root.LiThree = {
+})();
+
+/**
+ * Exports Emitter
+ */
+//
+root.LiThree = {
   Renderer: Renderer,
+  Common: Common,
   WebGLRenderer: WebGLRenderer,
   World: World,
   Object3D: Object3D,
+  Interactive: Interactive,
   Camera: {
     Perspective: PerspectiveCamera
   },

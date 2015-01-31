@@ -284,6 +284,53 @@ class Matrix4 extends Array {
     return out;
   }
 
+  multiplyVec4(vector) {
+
+  }
+
+  invert() {
+    // Cache the matrix values (makes for huge speed increases!)
+    var a00 = this[0], a01 = this[1], a02 = this[2], a03 = this[3];
+    var a10 = this[4], a11 = this[5], a12 = this[6], a13 = this[7];
+    var a20 = this[8], a21 = this[9], a22 = this[10], a23 = this[11];
+    var a30 = this[12], a31 = this[13], a32 = this[14], a33 = this[15];
+
+    var b00 = a00 * a11 - a01 * a10;
+    var b01 = a00 * a12 - a02 * a10;
+    var b02 = a00 * a13 - a03 * a10;
+    var b03 = a01 * a12 - a02 * a11;
+    var b04 = a01 * a13 - a03 * a11;
+    var b05 = a02 * a13 - a03 * a12;
+    var b06 = a20 * a31 - a21 * a30;
+    var b07 = a20 * a32 - a22 * a30;
+    var b08 = a20 * a33 - a23 * a30;
+    var b09 = a21 * a32 - a22 * a31;
+    var b10 = a21 * a33 - a23 * a31;
+    var b11 = a22 * a33 - a23 * a32;
+
+    // Calculate the determinant (inlined to avoid double-caching)
+    var invDet = 1 / (b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06);
+
+    this[0] = (a11 * b11 - a12 * b10 + a13 * b09) * invDet;
+    this[1] = (-a01 * b11 + a02 * b10 - a03 * b09) * invDet;
+    this[2] = (a31 * b05 - a32 * b04 + a33 * b03) * invDet;
+    this[3] = (-a21 * b05 + a22 * b04 - a23 * b03) * invDet;
+    this[4] = (-a10 * b11 + a12 * b08 - a13 * b07) * invDet;
+    this[5] = (a00 * b11 - a02 * b08 + a03 * b07) * invDet;
+    this[6] = (-a30 * b05 + a32 * b02 - a33 * b01) * invDet;
+    this[7] = (a20 * b05 - a22 * b02 + a23 * b01) * invDet;
+    this[8] = (a10 * b10 - a11 * b08 + a13 * b06) * invDet;
+    this[9] = (-a00 * b10 + a01 * b08 - a03 * b06) * invDet;
+    this[10] = (a30 * b04 - a31 * b02 + a33 * b00) * invDet;
+    this[11] = (-a20 * b04 + a21 * b02 - a23 * b00) * invDet;
+    this[12] = (-a10 * b09 + a11 * b07 - a12 * b06) * invDet;
+    this[13] = (a00 * b09 - a01 * b07 + a02 * b06) * invDet;
+    this[14] = (-a30 * b03 + a31 * b01 - a32 * b00) * invDet;
+    this[15] = (a20 * b03 - a21 * b01 + a22 * b00) * invDet;
+
+    return this;
+  }
+
   /**
    * Returns inverse matrix3
    *
@@ -317,6 +364,55 @@ class Matrix4 extends Array {
     return result;
   }
 
+  static multiplyVec4(mat, vec) {
+    var result = new Vector4();
+
+    result.x = mat[0] * vec.x + mat[4] * vec.y + mat[8] * vec.z + mat[12] * vec.w;
+    result.y = mat[1] * vec.x + mat[5] * vec.y + mat[9] * vec.z + mat[13] * vec.w;
+    result.z = mat[2] * vec.x + mat[6] * vec.y + mat[10] * vec.z + mat[14] * vec.w;
+    result.w = mat[3] * vec.x + mat[7] * vec.y + mat[11] * vec.z + mat[15] * vec.w;
+
+    return result;
+  }
+
+  static multiplyMatrices(a, b) {
+
+    var result = new Matrix4();
+
+    var a11 = a[0], a12 = a[4], a13 = a[8], a14 = a[12];
+    var a21 = a[1], a22 = a[5], a23 = a[9], a24 = a[13];
+    var a31 = a[2], a32 = a[6], a33 = a[10], a34 = a[14];
+    var a41 = a[3], a42 = a[7], a43 = a[11], a44 = a[15];
+
+    var b11 = b[0], b12 = b[4], b13 = b[8], b14 = b[12];
+    var b21 = b[1], b22 = b[5], b23 = b[9], b24 = b[13];
+    var b31 = b[2], b32 = b[6], b33 = b[10], b34 = b[14];
+    var b41 = b[3], b42 = b[7], b43 = b[11], b44 = b[15];
+
+    result[0] = a11 * b11 + a12 * b21 + a13 * b31 + a14 * b41;
+    result[4] = a11 * b12 + a12 * b22 + a13 * b32 + a14 * b42;
+    result[8] = a11 * b13 + a12 * b23 + a13 * b33 + a14 * b43;
+    result[12] = a11 * b14 + a12 * b24 + a13 * b34 + a14 * b44;
+
+    result[1] = a21 * b11 + a22 * b21 + a23 * b31 + a24 * b41;
+    result[5] = a21 * b12 + a22 * b22 + a23 * b32 + a24 * b42;
+    result[9] = a21 * b13 + a22 * b23 + a23 * b33 + a24 * b43;
+    result[13] = a21 * b14 + a22 * b24 + a23 * b34 + a24 * b44;
+
+    result[2] = a31 * b11 + a32 * b21 + a33 * b31 + a34 * b41;
+    result[6] = a31 * b12 + a32 * b22 + a33 * b32 + a34 * b42;
+    result[10] = a31 * b13 + a32 * b23 + a33 * b33 + a34 * b43;
+    result[14] = a31 * b14 + a32 * b24 + a33 * b34 + a34 * b44;
+
+    result[3] = a41 * b11 + a42 * b21 + a43 * b31 + a44 * b41;
+    result[7] = a41 * b12 + a42 * b22 + a43 * b32 + a44 * b42;
+    result[11] = a41 * b13 + a42 * b23 + a43 * b33 + a44 * b43;
+    result[15] = a41 * b14 + a42 * b24 + a43 * b34 + a44 * b44;
+
+    return result;
+
+  }
+
   /**
    * Rotates by given angle and giving X axis
    *
@@ -342,6 +438,16 @@ class Matrix4 extends Array {
    */
   rotateZ(rad) {
     this.rotate(rad, new Vector3(0, 0, 1));
+  }
+
+  clone() {
+    var cloned = new Matrix4();
+
+    for (var i = 16; i--;) {
+      cloned[i] = this[i];
+    }
+
+    return cloned;
   }
 
   /**

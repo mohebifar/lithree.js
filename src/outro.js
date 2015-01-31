@@ -1,8 +1,10 @@
 root.LiThree = {
   Renderer: Renderer,
+  Common: Common,
   WebGLRenderer: WebGLRenderer,
   World: World,
   Object3D: Object3D,
+  Interactive: Interactive,
   Camera: {
     Perspective: PerspectiveCamera
   },

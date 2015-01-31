@@ -10,7 +10,7 @@ grunt.initConfig({
     dist: {
       files:  [{
         src: '.tmp/es6/concat.js',
-        dest: 'dist/lithree.js'
+        dest: '.tmp/es5/concat.js'
       }]
     }
   },
@@ -18,6 +18,14 @@ grunt.initConfig({
     options: {
       sourceMap: true,
       separator: '\n'
+    },
+    dist: {
+      src: [
+        'src/intro.js',
+        '.tmp/es5/concat.js',
+        'src/outro.js'
+      ],
+      dest: 'dist/lithree.js'
     },
     es6: {
       src: ['src/**/*.js', '!src/intro.js', '!src/outro.js'],
@@ -53,7 +61,7 @@ grunt.initConfig({
   },
   jshint: {
     options: {
-      jshintrc: '.jshintrc',
+      jshintrc: '.jshintrc'
     },
     allFiles: [
       'src/**/*.js', '!src/intro.js', '!src/outro.js'
@@ -64,6 +72,6 @@ grunt.initConfig({
   }
 });
 
-grunt.registerTask('default', ['clean', 'concat:es6', '6to5']);
+grunt.registerTask('default', ['clean', 'concat:es6', '6to5', 'concat:dist']);
 
 grunt.registerTask('build', ['default', 'uglify']);

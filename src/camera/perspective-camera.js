@@ -17,7 +17,8 @@ class PerspectiveCamera {
     this.aspect = aspect;
     this.near = near;
     this.far = far;
-    this.matrix = new Matrix4();
+    this.projectionMatrix = new Matrix4();
+    this.viewMatrix = new Matrix4();
     this.lookAt = new Vector3();
     this.position = new Vector3();
     this.rotation = new Vector3();
@@ -45,16 +46,18 @@ class PerspectiveCamera {
   }
 
   /**
-   * @method updatePerspective
+   * @method getProjection
    */
-  updatePerspective() {
+  getProjection() {
     var fovy = 2 * Math.atan(Math.tan(this.fovy * 0.5) / this._zoom);
-    this.matrix.identity();
-    this.matrix.perspective(fovy, this.aspect, this.near, this.far);
+    this.projectionMatrix.identity();
+    this.projectionMatrix.perspective(fovy, this.aspect, this.near, this.far);
+
+    return this.projectionMatrix;
   }
 
   getMatrix() {
-    var matrix = new Matrix4();
+    var matrix = this.viewMatrix;
 
     matrix.identity();
     matrix.translate(this.position);

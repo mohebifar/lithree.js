@@ -105,7 +105,7 @@ class ShaderProgrammer {
     }, 'vNormal');
 
     var pMatrix = vertexProgram.uniform('mat4', function () {
-      this.value(renderer.camera.matrix);
+      this.value(renderer.camera.projectionMatrix);
     }, 'pMatrix');
 
     var mvMatrix = vertexProgram.uniform('mat4', function () {
@@ -134,7 +134,7 @@ class ShaderProgrammer {
     fragmentProgram.precision('mediump', 'float');
 
     var color = fragmentProgram.uniform('vec3', function () {
-      this.value(obj.color.toArray());
+      this.value(obj.material.color.toArray());
     }, 'vColor');
 
     if (world.lights.length > 0) {
@@ -155,6 +155,10 @@ class ShaderProgrammer {
       vertexProgram.uniform('bool', function () {
         this.value(obj.material.specular);
       }, 'bSpecular');
+
+      vertexProgram.uniform('bool', function () {
+        this.value(obj.material.diffuse);
+      }, 'bDiffuse');
 
       vertexProgram.code('vec3 transformedNormal = nMatrix * vNormal;');
       vertexProgram.code('vec3 normal = normalize(transformedNormal);');

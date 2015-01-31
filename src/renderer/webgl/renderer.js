@@ -25,7 +25,7 @@ class WebGLRenderer extends Renderer {
     this.camera = new PerspectiveCamera();
 
     this.camera.aspect = this.width / this.height;
-    this.camera.updatePerspective();
+    this.camera.getProjection();
 
     this.canvas = document.createElement('canvas');
     this.canvas.setAttribute('width', this.width);
@@ -71,14 +71,20 @@ class WebGLRenderer extends Renderer {
 
       var object = this.world.children[i];
 
-      object.buffers.vertices = this.gl.createBuffer();
-      object.buffers.vertexColor = this.gl.createBuffer();
-      object.buffers.normals = this.gl.createBuffer();
-      object.buffers.vertexIndex = this.gl.createBuffer();
-
-      object.shader = new ShaderProgrammer(this, object);
+      this.initShape(object);
 
     }
+
+  }
+
+  initShape(object) {
+
+    object.buffers.vertices = this.gl.createBuffer();
+    object.buffers.vertexColor = this.gl.createBuffer();
+    object.buffers.normals = this.gl.createBuffer();
+    object.buffers.vertexIndex = this.gl.createBuffer();
+
+    object.shader = new ShaderProgrammer(this, object);
 
   }
 

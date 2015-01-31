@@ -25,6 +25,22 @@ class Material {
      * @type {boolean}
      */
     this.specular = true;
+
+    /**
+     * Does this material has diffuse lighting ?
+     *
+     * @property diffuse
+     * @type {boolean}
+     */
+    this.diffuse = true;
+
+    /**
+     * Color of this material
+     *
+     * @property color
+     * @type {Color}
+     */
+    this.color = new Color();
   }
 
 }
