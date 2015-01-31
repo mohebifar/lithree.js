@@ -2,7 +2,7 @@
 <html>
 <head lang="en">
   <meta charset="UTF-8">
-  <title>cube</title>
+  <title>Sphere</title>
   <style>
     body {
       margin: 0;
@@ -17,16 +17,11 @@
 
 <script>
   var world = new LiThree.World();
+
   var renderer = new LiThree.WebGLRenderer(640, 480, world);
+
   var camera = renderer.camera;
   camera.position.z = -10;
-
-  var cube = LiThree.ObjectFactory.Cube(2);
-  cube.color.rgb(0.2, 0.2, 0.2);
-  cube.rotation.y = Math.PI / 4;
-  cube.rotation.x = Math.PI / 8;
-
-  world.add(cube);
 
   var light = new LiThree.Light.Point();
   light.diffuseColor.hex = '#16A086';
@@ -34,6 +29,10 @@
   light.position.z = -20;
   light.position.y = 0;
   world.add(light);
+
+  var sphere = LiThree.ObjectFactory.Sphere(2);
+  sphere.color.rgb(0.2, 0.2, 0.2);
+  world.add(sphere);
 
   renderer.initShapes();
 
@@ -52,7 +51,7 @@
       return;
     }
     camera.zoom += e.wheelDeltaY / 240;
-    camera.updatePerspective();
+    camera.getProjection();
   };
 
   var isDragging, lastPoint = {};
@@ -77,10 +76,9 @@
       lastPoint.x = e.clientX;
       lastPoint.y = e.clientY;
 
-      cube.rotation.x += delta.y / 200;
-      cube.rotation.y += delta.x / 200;
+      camera.position.x += delta.x / 100;
+      camera.position.y -= delta.y / 100;
     }
-
   };
 </script>
 

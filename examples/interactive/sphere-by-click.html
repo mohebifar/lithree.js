@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+  <meta charset="UTF-8">
+  <title>cube</title>
+  <style>
+    body {
+      margin: 0;
+      background-color: #000;
+      text-align: center;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+
+<script src="../../dist/lithree.js"></script>
+
+<script>
+  var world = new LiThree.World();
+  var renderer = new LiThree.WebGLRenderer(window.innerWidth, window.innerHeight, world);
+  renderer.camera.position.z = -10;
+
+
+  var light = new LiThree.Light.Point();
+  light.position.x = -30;
+  light.position.z = -60;
+  light.position.y = -30;
+  world.add(light);
+
+  var interactive = new LiThree.Interactive(renderer);
+
+  interactive.on('click',function(point, unporject) {
+
+    // Create an sphere object
+    var sphere = new LiThree.ObjectFactory.Sphere(Math.random() * 0.7 + 0.2);
+
+    // Set color of sphere
+    sphere.material.color.rgb(Math.random() * 0.5, Math.random() * 0.5, Math.random() * 0.5);
+
+    // Generate sphere on clicked position
+    sphere.position = unporject(0.5);
+
+    // Add sphere to the world
+    world.add(sphere);
+
+    // Initiate buffers and shader for the sphere
+    renderer.initShape(sphere);
+
+  });
+
+
+  function redraw() {
+    renderer.draw();
+
+    requestAnimationFrame(redraw);
+  }
+
+  requestAnimationFrame(redraw);
+
+  document.body.appendChild(renderer.canvas);
+</script>
+
+</body>
+</html>
