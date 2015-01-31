@@ -7,7 +7,7 @@ class Interactive extends Emitter {
     super();
     this.isDragging = false;
     this.lastDown = 0;
-    this.clickPrecisionTime = 300;
+    this.clickFlag = false;
     this.lastPosition = {x: 0, y: 0};
     this.renderer = renderer;
 
@@ -50,6 +50,7 @@ class Interactive extends Emitter {
       e.preventDefault();
       _this.isDragging = true;
       _this.updatePosition(e.clientX, e.clientY);
+      _this.clickFlag = true;
 
       if (_this.hasEvent('start')) {
         _this.emit('start', _this.lastPosition, unproject);
@@ -62,6 +63,7 @@ class Interactive extends Emitter {
       e.preventDefault();
 
       if (_this.isDragging) {
+        _this.clickFlag = false;
         _this.updatePosition(e.clientX, e.clientY);
 
         if (_this.hasEvent('drag')) {
@@ -80,7 +82,7 @@ class Interactive extends Emitter {
       _this.isDragging = false;
       _this.updatePosition(e.clientX, e.clientY);
 
-      if (_this.hasEvent('click') && Date.now() - _this.lastDown < _this.clickPrecisionTime) {
+      if (_this.hasEvent('click') && _this.clickFlag === true) {
         _this.emit('click', _this.lastPosition, unproject);
       } else if (_this.hasEvent('end')) {
         _this.emit('end', _this.lastPosition, unproject);
