@@ -1,3 +1,5 @@
+[![NPM version](http://img.shields.io/npm/v/lithree.js.svg?style=flat)](https://www.npmjs.org/package/openbabel) [![npm](https://img.shields.io/npm/l/lithree.js.svg?style=flat)](http://mohebifar.mit-license.org/)
+
 # lithree.js
 **lithree.js** is a lightweight 3D WebGL framework. It's just about 25kb. lithree.js is originally written in ES6 and is transcompiled to ES5.
 
