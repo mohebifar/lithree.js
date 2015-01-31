@@ -2,7 +2,7 @@
 <html>
 <head lang="en">
   <meta charset="UTF-8">
-  <title>Sphere</title>
+  <title>cube</title>
   <style>
     body {
       margin: 0;
@@ -19,14 +19,14 @@
   var world = new LiThree.World();
   var renderer = new LiThree.WebGLRenderer(640, 480, world);
   var camera = renderer.camera;
-
-  var sphere = LiThree.ObjectFactory.Cube(2);
-  sphere.drawingMode = WebGLRenderingContext.TRIANGLES;
-  sphere.color.rgb(0.2, 0.2, 0.2);
-
   camera.position.z = -10;
 
-  world.add(sphere);
+  var cube = LiThree.ObjectFactory.Cube(2);
+  cube.color.rgb(0.2, 0.2, 0.2);
+  cube.rotation.y = Math.PI / 4;
+  cube.rotation.x = Math.PI / 8;
+
+  world.add(cube);
 
   var light = new LiThree.Light.Point();
   light.diffuseColor.hex = '#16A086';
@@ -77,8 +77,8 @@
       lastPoint.x = e.clientX;
       lastPoint.y = e.clientY;
 
-      sphere.rotation.x += delta.y / 200;
-      sphere.rotation.y += delta.x / 200;
+      cube.rotation.x += delta.y / 200;
+      cube.rotation.y += delta.x / 200;
     }
 
   };
