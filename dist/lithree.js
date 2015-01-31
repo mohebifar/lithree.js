@@ -2250,6 +2250,8 @@ var Object3D = (function () {
 
     this.drawingMode = Common.drawingMode.LINE_STRIP;
     this.darwingFunction = Common.drawingFunctions.ARRAYS;
+
+    this.initiated = false;
   }
 
   _prototypeProperties(Object3D, null, {
@@ -2375,12 +2377,19 @@ var WebGLRenderer = (function (Renderer) {
     },
     initShape: {
       value: function initShape(object) {
-        object.buffers.vertices = this.gl.createBuffer();
-        object.buffers.vertexColor = this.gl.createBuffer();
-        object.buffers.normals = this.gl.createBuffer();
-        object.buffers.vertexIndex = this.gl.createBuffer();
+        if (!object.initiated) {
+          // Create buffers
+          object.buffers.vertices = this.gl.createBuffer();
+          object.buffers.vertexColor = this.gl.createBuffer();
+          object.buffers.normals = this.gl.createBuffer();
+          object.buffers.vertexIndex = this.gl.createBuffer();
 
-        object.shader = new ShaderProgrammer(this, object);
+          // Create shader programmer
+          object.shader = new ShaderProgrammer(this, object);
+
+          // Set flag
+          object.initiated = true;
+        }
       },
       writable: true,
       enumerable: true,
@@ -2399,6 +2408,8 @@ var WebGLRenderer = (function (Renderer) {
         for (var i = this.world.children.length; i--;) {
           var object = this.world.children[i];
           var buffers = object.buffers;
+
+          this.initShape(object);
 
           object.shader.use();
           object.shader.assignValues();

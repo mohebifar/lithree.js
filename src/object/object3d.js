@@ -15,7 +15,6 @@ class Object3D {
    * @method constructor
    */
   constructor() {
-
     this.type = 'object';
 
     this.scale = new Vector3();
@@ -37,6 +36,8 @@ class Object3D {
 
     this.drawingMode = Common.drawingMode.LINE_STRIP;
     this.darwingFunction = Common.drawingFunctions.ARRAYS;
+
+    this.initiated = false;
   }
 
   /**

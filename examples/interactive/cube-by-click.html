@@ -2,11 +2,12 @@
 <html>
 <head lang="en">
   <meta charset="UTF-8">
-  <title>cube</title>
+  <title>Create cubes by clicking on screen</title>
   <style>
     body {
       margin: 0;
-      background-color: #000;
+      background-color: #e1e1e1;
+      background-image: linear-gradient(#e1e1e1, #f8f8f8);
       text-align: center;
       overflow: hidden;
     }
@@ -21,7 +22,6 @@
   var renderer = new LiThree.WebGLRenderer(window.innerWidth, window.innerHeight, world);
   renderer.camera.position.z = -10;
 
-
   var light = new LiThree.Light.Point();
   light.position.x = -30;
   light.position.z = -60;
@@ -32,20 +32,24 @@
 
   interactive.on('click', function (point, unporject) {
 
-    // Create an sphere object
-    var sphere = new LiThree.ObjectFactory.Sphere(Math.random() * 0.7 + 0.2);
+    // Create a cube object
+    var cube = new LiThree.ObjectFactory.Cube(Math.random() * 0.3 + 0.4);
 
-    // Set color of sphere
-    sphere.material.color.rgb(Math.random() * 0.5, Math.random() * 0.5, Math.random() * 0.5);
+    requestAnimationFrame(function a() {
+      cube.rotation.x += 0.01;
+      cube.rotation.y += 0.03;
 
-    // Generate sphere on clicked position
-    sphere.position = unporject(0.5);
+      requestAnimationFrame(a);
+    });
 
-    // Add sphere to the world
-    world.add(sphere);
+    // Set color of cube
+    cube.material.color.rgb(Math.random() * 0.5, Math.random() * 0.5, Math.random() * 0.5);
 
-    // Initiate buffers and shader for the sphere
-    renderer.initShape(sphere);
+    // Generate cube on clicked position
+    cube.position = unporject(0.5);
+
+    // Add cube to the world
+    world.add(cube);
 
   });
 

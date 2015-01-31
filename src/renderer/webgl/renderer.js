@@ -79,12 +79,19 @@ class WebGLRenderer extends Renderer {
 
   initShape(object) {
 
-    object.buffers.vertices = this.gl.createBuffer();
-    object.buffers.vertexColor = this.gl.createBuffer();
-    object.buffers.normals = this.gl.createBuffer();
-    object.buffers.vertexIndex = this.gl.createBuffer();
+    if (!object.initiated) {
+      // Create buffers
+      object.buffers.vertices = this.gl.createBuffer();
+      object.buffers.vertexColor = this.gl.createBuffer();
+      object.buffers.normals = this.gl.createBuffer();
+      object.buffers.vertexIndex = this.gl.createBuffer();
 
-    object.shader = new ShaderProgrammer(this, object);
+      // Create shader programmer
+      object.shader = new ShaderProgrammer(this, object);
+
+      // Set flag
+      object.initiated = true;
+    }
 
   }
 
@@ -101,6 +108,8 @@ class WebGLRenderer extends Renderer {
 
       let object = this.world.children[i];
       let buffers = object.buffers;
+
+      this.initShape(object);
 
       object.shader.use();
       object.shader.assignValues();
