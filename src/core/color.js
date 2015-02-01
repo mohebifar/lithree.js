@@ -6,26 +6,15 @@ class Color {
   }
 
   set hex(hex) {
-    var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+    hex = Math.floor(hex);
 
-    hex = hex.replace(shorthandRegex, function (m, r, g, b) {
-      return r + r + g + g + b + b;
-    });
-
-    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-
-    this.array[0] = parseInt(result[1], 16) / 255;
-    this.array[1] = parseInt(result[2], 16) / 255;
-    this.array[2] = parseInt(result[3], 16) / 255;
+    this.array[0] = ( hex >> 16 & 255 ) / 255;
+    this.array[1] = ( hex >> 8 & 255 ) / 255;
+    this.array[2] = ( hex & 255 ) / 255;
   }
 
   get hex() {
-    function componentToHex(c) {
-      var hex = c.toString(16);
-      return hex.length === 1 ? "0" + hex : hex;
-    }
-
-    return "#" + componentToHex(this.array[0]) + componentToHex(this.array[1]) + componentToHex(this.array[2]);
+    return ( this.array[0] * 255 ) << 16 ^ ( this.array[1] * 255 ) << 8 ^ ( this.array[2] * 255 ) << 0;
   }
 
   rgb(r, g, b) {

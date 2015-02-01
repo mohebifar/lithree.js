@@ -19,7 +19,6 @@ class WebGLRenderer extends Renderer {
    * @param {World} world
    */
   constructor(width, height, world, color = null) {
-    super.constructor(width, height);
 
     this.world = world;
     this.camera = new PerspectiveCamera();
@@ -28,11 +27,12 @@ class WebGLRenderer extends Renderer {
     this.camera.getProjection();
 
     this.canvas = document.createElement('canvas');
-    this.canvas.setAttribute('width', this.width);
-    this.canvas.setAttribute('height', this.height);
     this.color = color;
 
     this.initGl();
+
+    this.setSize(width, height);
+
   }
 
   /**
@@ -49,15 +49,27 @@ class WebGLRenderer extends Renderer {
      */
     this.gl = this.canvas.getContext('experimental-webgl');
 
-    this.gl.viewportWidth = this.canvas.width;
-    this.gl.viewportHeight = this.canvas.height;
-
-    if (this.color !== null) {
-      this.gl.clearColor(this.color[0], this.color[1], this.color[2], this.color[3]);
-    }
-
     this.gl.enable(this.gl.DEPTH_TEST);
 
+  }
+
+  setSize(width, height) {
+    this.width = width;
+    this.height = height;
+    this.canvas.setAttribute('width', width);
+    this.canvas.setAttribute('height', height);
+    this.gl.viewport(0, 0, width, height);
+    this.camera.aspect = width / height;
+    this.camera.getProjection();
+  }
+
+  setBackgroundColor(color) {
+    this.color = color;
+
+    if (color !== null) {
+      color = color.array;
+      this.gl.clearColor(color[0], color[1], color[2], color[3]);
+    }
   }
 
   /**
@@ -69,9 +81,7 @@ class WebGLRenderer extends Renderer {
 
     for (var i = this.world.children.length; i--;) {
 
-      let object = this.world.children[i];
-
-      this.initShape(object);
+      this.initShape(this.world.children[i]);
 
     }
 
@@ -107,6 +117,11 @@ class WebGLRenderer extends Renderer {
     for (var i = this.world.children.length; i--;) {
 
       let object = this.world.children[i];
+
+      if(! object.display) {
+        continue;
+      }
+
       let buffers = object.buffers;
 
       this.initShape(object);

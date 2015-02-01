@@ -35,24 +35,23 @@
     // Create a cube object
     var cube = new LiThree.ObjectFactory.Cube(Math.random() * 0.3 + 0.4);
 
-    requestAnimationFrame(function a() {
+    requestAnimationFrame(function tick() {
       cube.rotation.x += 0.01;
       cube.rotation.y += 0.03;
 
-      requestAnimationFrame(a);
+      requestAnimationFrame(tick);
     });
 
     // Set color of cube
     cube.material.color.rgb(Math.random() * 0.5, Math.random() * 0.5, Math.random() * 0.5);
 
     // Generate cube on clicked position
-    cube.position = unporject(0.5);
+    cube.position.copy(unporject(0.5));
 
     // Add cube to the world
     world.add(cube);
 
   });
-
 
   function redraw() {
     renderer.draw();
@@ -61,6 +60,10 @@
   }
 
   requestAnimationFrame(redraw);
+
+  window.addEventListener('resize', function (e) {
+    renderer.setSize(this.innerWidth, this.innerHeight);
+  });
 
   document.body.appendChild(renderer.canvas);
 </script>

@@ -142,25 +142,14 @@ var Color = (function () {
   _prototypeProperties(Color, null, {
     hex: {
       set: function (hex) {
-        var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+        hex = Math.floor(hex);
 
-        hex = hex.replace(shorthandRegex, function (m, r, g, b) {
-          return r + r + g + g + b + b;
-        });
-
-        var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-
-        this.array[0] = parseInt(result[1], 16) / 255;
-        this.array[1] = parseInt(result[2], 16) / 255;
-        this.array[2] = parseInt(result[3], 16) / 255;
+        this.array[0] = (hex >> 16 & 255) / 255;
+        this.array[1] = (hex >> 8 & 255) / 255;
+        this.array[2] = (hex & 255) / 255;
       },
       get: function () {
-        var componentToHex = function (c) {
-          var hex = c.toString(16);
-          return hex.length === 1 ? "0" + hex : hex;
-        };
-
-        return "#" + componentToHex(this.array[0]) + componentToHex(this.array[1]) + componentToHex(this.array[2]);
+        return this.array[0] * 255 << 16 ^ this.array[1] * 255 << 8 ^ this.array[2] * 255 << 0;
       },
       enumerable: true,
       configurable: true
@@ -2252,6 +2241,8 @@ var Object3D = (function () {
     this.darwingFunction = Common.drawingFunctions.ARRAYS;
 
     this.initiated = false;
+
+    this.display = true;
   }
 
   _prototypeProperties(Object3D, null, {
@@ -2310,7 +2301,7 @@ var WebGLRenderer = (function (Renderer) {
    */
   function WebGLRenderer(width, height, world) {
     var color = arguments[3] === undefined ? null : arguments[3];
-    _get(Object.getPrototypeOf(WebGLRenderer.prototype), "constructor", this).call(this, width, height);
+
 
     this.world = world;
     this.camera = new PerspectiveCamera();
@@ -2319,11 +2310,11 @@ var WebGLRenderer = (function (Renderer) {
     this.camera.getProjection();
 
     this.canvas = document.createElement("canvas");
-    this.canvas.setAttribute("width", this.width);
-    this.canvas.setAttribute("height", this.height);
     this.color = color;
 
     this.initGl();
+
+    this.setSize(width, height);
   }
 
   _inherits(WebGLRenderer, Renderer);
@@ -2344,14 +2335,34 @@ var WebGLRenderer = (function (Renderer) {
          */
         this.gl = this.canvas.getContext("experimental-webgl");
 
-        this.gl.viewportWidth = this.canvas.width;
-        this.gl.viewportHeight = this.canvas.height;
-
-        if (this.color !== null) {
-          this.gl.clearColor(this.color[0], this.color[1], this.color[2], this.color[3]);
-        }
-
         this.gl.enable(this.gl.DEPTH_TEST);
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    setSize: {
+      value: function setSize(width, height) {
+        this.width = width;
+        this.height = height;
+        this.canvas.setAttribute("width", width);
+        this.canvas.setAttribute("height", height);
+        this.gl.viewport(0, 0, width, height);
+        this.camera.aspect = width / height;
+        this.camera.getProjection();
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    setBackgroundColor: {
+      value: function setBackgroundColor(color) {
+        this.color = color;
+
+        if (color !== null) {
+          color = color.array;
+          this.gl.clearColor(color[0], color[1], color[2], color[3]);
+        }
       },
       writable: true,
       enumerable: true,
@@ -2366,9 +2377,7 @@ var WebGLRenderer = (function (Renderer) {
        */
       value: function initShapes() {
         for (var i = this.world.children.length; i--;) {
-          var object = this.world.children[i];
-
-          this.initShape(object);
+          this.initShape(this.world.children[i]);
         }
       },
       writable: true,
@@ -2407,6 +2416,11 @@ var WebGLRenderer = (function (Renderer) {
 
         for (var i = this.world.children.length; i--;) {
           var object = this.world.children[i];
+
+          if (!object.display) {
+            continue;
+          }
+
           var buffers = object.buffers;
 
           this.initShape(object);

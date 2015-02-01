@@ -38,6 +38,8 @@ class Object3D {
     this.darwingFunction = Common.drawingFunctions.ARRAYS;
 
     this.initiated = false;
+
+    this.display = true;
   }
 
   /**
