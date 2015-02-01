@@ -43,20 +43,21 @@ grunt.initConfig({
     }
   },
   watch: {
-    scripts: {
-      files: ['src/**/*.js'],
-      tasks: ['default'],
+    options: {
+      spawn: false
+    },
+    livereload: {
+      files: ['src/**/*.js', 'examples/**/*'],
       options: {
-        livereload: true,
-        spawn: false
+        livereload: true
       }
     },
+    scripts: {
+      files: ['src/**/*.js'],
+      tasks: ['default']
+    },
     examples: {
-      files: ['examples/**/*'],
-      options: {
-        livereload: true,
-        spawn: false
-      }
+      files: ['examples/**/*']
     }
   },
   jshint: {
