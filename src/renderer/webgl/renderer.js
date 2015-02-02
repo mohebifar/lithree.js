@@ -27,11 +27,11 @@ class WebGLRenderer extends Renderer {
     this.camera.getProjection();
 
     this.canvas = document.createElement('canvas');
-    this.color = color;
 
     this.initGl();
 
     this.setSize(width, height);
+    this.setBackgroundColor(color);
 
   }
 

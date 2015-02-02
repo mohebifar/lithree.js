@@ -136,6 +136,10 @@ class Shader {
     }
   }
 
+  clear() {
+    this._code = ''
+  }
+
   /**
    * Generates and returns code of shader
    *
