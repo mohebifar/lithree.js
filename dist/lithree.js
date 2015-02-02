@@ -420,7 +420,7 @@ var Interactive = (function (Emitter) {
     this.clickFlag = false;
     this.lastPosition = { x: 0, y: 0 };
     this.renderer = renderer;
-
+    this.delta = { x: 0, y: 0 };
     this._attachListeners();
   }
 
@@ -429,8 +429,14 @@ var Interactive = (function (Emitter) {
   _prototypeProperties(Interactive, null, {
     updatePosition: {
       value: function updatePosition(x, y) {
-        this.lastPosition.x = x - this.renderer.canvas.offsetLeft;
-        this.lastPosition.y = y - this.renderer.canvas.offsetTop;
+        x = x - this.renderer.canvas.offsetLeft;
+        y = y - this.renderer.canvas.offsetTop;
+
+        this.delta.x = this.lastPosition.x - x;
+        this.delta.y = this.lastPosition.y - y;
+
+        this.lastPosition.x = x;
+        this.lastPosition.y = y;
       },
       writable: true,
       enumerable: true,
@@ -486,12 +492,12 @@ var Interactive = (function (Emitter) {
             _this.updatePosition(e.clientX, e.clientY);
 
             if (_this.hasEvent("drag")) {
-              _this.emit("drag", _this.lastPosition, unproject);
+              _this.emit("drag", _this.lastPosition, _this.delta, unproject);
             }
           } else if (_this.hasEvent("move")) {
             _this.updatePosition(e.clientX, e.clientY);
 
-            _this.emit("move", _this.lastPosition, unproject);
+            _this.emit("move", _this.lastPosition, _this.delta, unproject);
           }
         });
 
@@ -505,6 +511,14 @@ var Interactive = (function (Emitter) {
             _this.emit("click", _this.lastPosition, unproject);
           } else if (_this.hasEvent("end")) {
             _this.emit("end", _this.lastPosition, unproject);
+          }
+        });
+
+        dom.addEventListener("mousewheel", function (e) {
+          e.preventDefault();
+
+          if (_this.hasEvent("wheel")) {
+            _this.emit("wheel", e);
           }
         });
       },
@@ -997,6 +1011,55 @@ var Matrix4 = (function (Array) {
       writable: true,
       enumerable: true,
       configurable: true
+    },
+    fromRotationTranslationScaleOrigin: {
+      value: function fromRotationTranslationScaleOrigin(q, v, s, o) {
+        var x = q.x,
+            y = q.y,
+            z = q.z,
+            w = q.w,
+            x2 = x + x,
+            y2 = y + y,
+            z2 = z + z,
+            xx = x * x2,
+            xy = x * y2,
+            xz = x * z2,
+            yy = y * y2,
+            yz = y * z2,
+            zz = z * z2,
+            wx = w * x2,
+            wy = w * y2,
+            wz = w * z2,
+            sx = s.x,
+            sy = s.y,
+            sz = s.z,
+            ox = o.x,
+            oy = o.y,
+            oz = o.z;
+
+        var out = new Matrix4();
+        out[0] = (1 - (yy + zz)) * sx;
+        out[1] = (xy + wz) * sx;
+        out[2] = (xz - wy) * sx;
+        out[3] = 0;
+        out[4] = (xy - wz) * sy;
+        out[5] = (1 - (xx + zz)) * sy;
+        out[6] = (yz + wx) * sy;
+        out[7] = 0;
+        out[8] = (xz + wy) * sz;
+        out[9] = (yz - wx) * sz;
+        out[10] = (1 - (xx + yy)) * sz;
+        out[11] = 0;
+        out[12] = v.x + ox - (out[0] * ox + out[4] * oy + out[8] * oz);
+        out[13] = v.y + oy - (out[1] * ox + out[5] * oy + out[9] * oz);
+        out[14] = v.z + oz - (out[2] * ox + out[6] * oy + out[10] * oz);
+        out[15] = 1;
+
+        return out;
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
     }
   }, {
     identity: {
@@ -1460,6 +1523,203 @@ var Matrix4 = (function (Array) {
 
   return Matrix4;
 })(Array);
+
+var Quaternion = (function () {
+  function Quaternion() {
+    var x = arguments[0] === undefined ? 0 : arguments[0];
+    var y = arguments[1] === undefined ? 0 : arguments[1];
+    var z = arguments[2] === undefined ? 0 : arguments[2];
+    var w = arguments[3] === undefined ? 1 : arguments[3];
+    this._x = x;
+    this._y = y;
+    this._z = z;
+    this._w = w;
+  }
+
+  _prototypeProperties(Quaternion, null, {
+    x: {
+      set: function (x) {
+        this._x = x;
+      },
+      get: function () {
+        return this._x;
+      },
+      enumerable: true,
+      configurable: true
+    },
+    y: {
+      set: function (y) {
+        this._y = y;
+      },
+      get: function () {
+        return this._y;
+      },
+      enumerable: true,
+      configurable: true
+    },
+    z: {
+      set: function (z) {
+        this._z = z;
+      },
+      get: function () {
+        return this._z;
+      },
+      enumerable: true,
+      configurable: true
+    },
+    w: {
+      set: function (w) {
+        this._w = w;
+      },
+      get: function () {
+        return this._w;
+      },
+      enumerable: true,
+      configurable: true
+    },
+    setAxisAngle: {
+      value: function setAxisAngle(axis, rad) {
+        rad = rad * 0.5;
+        var s = Math.sin(rad);
+        this.x = s * axis.x;
+        this.y = s * axis.y;
+        this.z = s * axis.z;
+        this.w = Math.cos(rad);
+        return this;
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    normalize: {
+      value: function normalize() {
+        var x = this.x,
+            y = this.y,
+            z = this.z,
+            w = this.w;
+        var len = x * x + y * y + z * z + w * w;
+
+        if (len > 0) {
+          len = 1 / Math.sqrt(len);
+          this.x *= len;
+          this.y *= len;
+          this.z *= len;
+          this.w *= len;
+        }
+
+        return this;
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    rotationTo: {
+      value: function rotationTo(a, b) {
+        var tmpvec3;
+        var xUnitVec3 = new Vector3(1, 0, 0);
+        var yUnitVec3 = new Vector3(0, 1, 0);
+
+        var dot = a.dot(b);
+
+        if (dot < -0.999999) {
+          tmpvec3 = xUnitVec3.cross(a);
+
+          if (tmpvec3.getLength() < 0.000001) {
+            tmpvec3 = yUnitVec3.cross(a);
+          }
+
+          tmpvec3.normalize();
+          this.setAxisAngle(tmpvec3, Math.PI);
+          return this;
+        } else if (dot > 0.999999) {
+          this.x = 0;
+          this.y = 0;
+          this.z = 0;
+          this.w = 1;
+          return this;
+        } else {
+          tmpvec3 = a.cross(b);
+          this.x = tmpvec3.x;
+          this.y = tmpvec3.y;
+          this.z = tmpvec3.z;
+          this.w = 1 + dot;
+          return this.normalize();
+        }
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    rotateX: {
+      value: function rotateX(rad) {
+        rad *= 0.5;
+
+        var ax = this.x,
+            ay = this.y,
+            az = this.z,
+            aw = this.w,
+            bx = Math.sin(rad),
+            bw = Math.cos(rad);
+
+        this.x = ax * bw + aw * bx;
+        this.y = ay * bw + az * bx;
+        this.z = az * bw - ay * bx;
+        this.w = aw * bw - ax * bx;
+
+        return this;
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    rotateY: {
+      value: function rotateY(rad) {
+        rad *= 0.5;
+
+        var ax = this.x,
+            ay = this.y,
+            az = this.z,
+            aw = this.w,
+            by = Math.sin(rad),
+            bw = Math.cos(rad);
+
+        this.x = ax * bw - az * by;
+        this.y = ay * bw + aw * by;
+        this.z = az * bw + ax * by;
+        this.w = aw * bw - ay * by;
+
+        return this;
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    rotateZ: {
+      value: function rotateZ(rad) {
+        rad *= 0.5;
+
+        var ax = this.x,
+            ay = this.y,
+            az = this.z,
+            aw = this.w,
+            bz = Math.sin(rad),
+            bw = Math.cos(rad);
+
+        this.x = ax * bw + ay * bz;
+        this.y = ay * bw - ax * bz;
+        this.z = az * bw + aw * bz;
+        this.w = aw * bw - az * bz;
+
+        return this;
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    }
+  });
+
+  return Quaternion;
+})();
 
 var Ray = (function () {
   function Ray() {
@@ -2111,8 +2371,8 @@ function CylinderFactory() {
       heightBottom = height / -2;
 
   for (a = 0, i = 1; i <= steps; a += step, i++) {
-    var positionTop = new Vector3(Math.cos(a) * radiusTop, heightTop, Math.sin(a) * radiusTop);
-    var positionBottom = new Vector3(Math.cos(a) * radiusBottom, heightBottom, Math.sin(a) * radiusBottom);
+    var positionTop = new Vector3(heightTop, Math.cos(a) * radiusTop, Math.sin(a) * radiusTop);
+    var positionBottom = new Vector3(heightBottom, Math.cos(a) * radiusBottom, Math.sin(a) * radiusBottom);
 
     var crossed = positionTop.cross(positionBottom);
 
@@ -2220,9 +2480,10 @@ var Object3D = (function () {
   function Object3D() {
     this.type = "object";
 
-    this.scale = new Vector3();
+    this.scale = new Vector3(1, 1, 1);
     this.position = new Vector3();
-    this.rotation = new Vector3();
+    this.rotation = new Quaternion();
+    this.origin = new Vector3();
 
     this.vertices = [];
     this.vertexNormals = false;
@@ -2254,16 +2515,9 @@ var Object3D = (function () {
        * @returns {Matrix4}
        */
       value: function getMatrix() {
-        var mvMatrix = new Matrix4();
-        mvMatrix.identity();
+        this.matrix = Matrix4.fromRotationTranslationScaleOrigin(this.rotation, this.position, this.scale, this.origin);
 
-        mvMatrix.translate(this.position);
-
-        mvMatrix.rotateX(this.rotation.x);
-        mvMatrix.rotateY(this.rotation.y);
-        mvMatrix.rotateZ(this.rotation.z);
-
-        return mvMatrix;
+        return this.matrix;
       },
       writable: true,
       enumerable: true,
@@ -2310,11 +2564,11 @@ var WebGLRenderer = (function (Renderer) {
     this.camera.getProjection();
 
     this.canvas = document.createElement("canvas");
-    this.color = color;
 
     this.initGl();
 
     this.setSize(width, height);
+    this.setBackgroundColor(color);
   }
 
   _inherits(WebGLRenderer, Renderer);
@@ -2982,6 +3236,14 @@ var Shader = (function () {
         } else {
           throw "The variable " + name + " is not set.";
         }
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    clear: {
+      value: function clear() {
+        this._code = "";
       },
       writable: true,
       enumerable: true,

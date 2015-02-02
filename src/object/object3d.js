@@ -17,9 +17,10 @@ class Object3D {
   constructor() {
     this.type = 'object';
 
-    this.scale = new Vector3();
+    this.scale = new Vector3(1, 1, 1);
     this.position = new Vector3();
-    this.rotation = new Vector3();
+    this.rotation = new Quaternion();
+    this.origin = new Vector3();
 
     this.vertices = [];
     this.vertexNormals = false;
@@ -48,16 +49,14 @@ class Object3D {
    * @returns {Matrix4}
    */
   getMatrix() {
-    var mvMatrix = new Matrix4();
-    mvMatrix.identity();
+    this.matrix = Matrix4.fromRotationTranslationScaleOrigin(
+      this.rotation,
+      this.position,
+      this.scale,
+      this.origin
+    );
 
-    mvMatrix.translate(this.position);
-
-    mvMatrix.rotateX(this.rotation.x);
-    mvMatrix.rotateY(this.rotation.y);
-    mvMatrix.rotateZ(this.rotation.z);
-
-    return mvMatrix;
+    return this.matrix;
   }
 
 }
