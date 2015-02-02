@@ -29,8 +29,8 @@ export default
     var heightTop = height / 2, heightBottom = height / -2;
 
     for (a = 0, i = 1; i <= steps; a += step, i++) {
-      var positionTop = new Vector3(Math.cos(a) * radiusTop, heightTop, Math.sin(a) * radiusTop);
-      var positionBottom = new Vector3(Math.cos(a) * radiusBottom, heightBottom, Math.sin(a) * radiusBottom);
+      var positionTop = new Vector3(heightTop, Math.cos(a) * radiusTop, Math.sin(a) * radiusTop);
+      var positionBottom = new Vector3(heightBottom, Math.cos(a) * radiusBottom, Math.sin(a) * radiusBottom);
 
       var crossed = positionTop.cross(positionBottom);
 
