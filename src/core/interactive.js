@@ -10,13 +10,19 @@ class Interactive extends Emitter {
     this.clickFlag = false;
     this.lastPosition = {x: 0, y: 0};
     this.renderer = renderer;
-
+    this.delta = {x: 0, y: 0};
     this._attachListeners();
   }
 
   updatePosition(x, y) {
-    this.lastPosition.x = x - this.renderer.canvas.offsetLeft;
-    this.lastPosition.y = y - this.renderer.canvas.offsetTop;
+    x = x - this.renderer.canvas.offsetLeft;
+    y = y - this.renderer.canvas.offsetTop;
+
+    this.delta.x = this.lastPosition.x - x;
+    this.delta.y = this.lastPosition.y - y;
+
+    this.lastPosition.x = x;
+    this.lastPosition.y = y;
   }
 
   unproject(x, y, z) {
@@ -67,12 +73,12 @@ class Interactive extends Emitter {
         _this.updatePosition(e.clientX, e.clientY);
 
         if (_this.hasEvent('drag')) {
-          _this.emit('drag', _this.lastPosition, unproject);
+          _this.emit('drag', _this.lastPosition, _this.delta, unproject);
         }
       } else if (_this.hasEvent('move')) {
         _this.updatePosition(e.clientX, e.clientY);
 
-        _this.emit('move', _this.lastPosition, unproject);
+        _this.emit('move', _this.lastPosition, _this.delta, unproject);
       }
     });
 
@@ -86,6 +92,14 @@ class Interactive extends Emitter {
         _this.emit('click', _this.lastPosition, unproject);
       } else if (_this.hasEvent('end')) {
         _this.emit('end', _this.lastPosition, unproject);
+      }
+    });
+
+    dom.addEventListener('mousewheel', function (e) {
+      e.preventDefault();
+
+      if(_this.hasEvent('wheel')) {
+        _this.emit('wheel', e);
       }
     });
   }
