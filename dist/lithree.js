@@ -2620,7 +2620,7 @@ var WebGLRenderer = (function (Renderer) {
          *
          * @type {WebGLRenderingContext}
          */
-        this.gl = this.canvas.getContext("experimental-webgl");
+        this.gl = this.canvas.getContext("webgl");
 
         this.gl.enable(this.gl.DEPTH_TEST);
       },
