@@ -10,6 +10,7 @@ root.LiThree = {
   },
   Color: Color,
   Math: {
+    Quaternion: Quaternion,
     Vector3: Vector3,
     Matrix4: Matrix4
   },
