@@ -112,11 +112,11 @@ class ShaderProgrammer {
     }, 'pMatrix');
 
     var vMatrix = vertexProgram.uniform('mat4', function () {
-      this.value(renderer.camera.getMatrix());
+      this.value(renderer.camera.viewMatrix);
     }, 'vMatrix');
 
     var mMatrix = vertexProgram.uniform('mat4', function () {
-      this.value(obj.getMatrix());
+      this.value(obj.matrix);
     }, 'mMatrix');
 
     vertexProgram.code('mat4 mvMatrix = %vm * %mm; gl_Position = %p * mvMatrix * vec4(%vp, 1.0);', {

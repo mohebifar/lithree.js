@@ -26,6 +26,16 @@ class PerspectiveCamera {
     this._zoom = 1;
 
     var _this = this;
+
+    _this.position.on('update', function () {
+      _this.getMatrix();
+    });
+
+    _this.rotation.on('update', function () {
+      _this.getMatrix();
+    });
+
+    _this.getMatrix();
   }
 
   /**
@@ -34,6 +44,8 @@ class PerspectiveCamera {
    * @property {Number} [zoom=1]
    */
   set zoom(zoom) {
+    this.getProjection();
+
     if (zoom < 0) {
       throw 'Zoom should be equal or greater than 0';
     }

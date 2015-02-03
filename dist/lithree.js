@@ -70,6 +70,16 @@ var PerspectiveCamera = (function () {
     this._zoom = 1;
 
     var _this = this;
+
+    _this.position.on("update", function () {
+      _this.getMatrix();
+    });
+
+    _this.rotation.on("update", function () {
+      _this.getMatrix();
+    });
+
+    _this.getMatrix();
   }
 
   _prototypeProperties(PerspectiveCamera, null, {
@@ -81,6 +91,8 @@ var PerspectiveCamera = (function () {
        * @property {Number} [zoom=1]
        */
       set: function (zoom) {
+        this.getProjection();
+
         if (zoom < 0) {
           throw "Zoom should be equal or greater than 0";
         }
@@ -1461,22 +1473,27 @@ var Matrix4 = (function (Array) {
   return Matrix4;
 })(Array);
 
-var Quaternion = (function () {
+var Quaternion = (function (Emitter) {
   function Quaternion() {
     var x = arguments[0] === undefined ? 0 : arguments[0];
     var y = arguments[1] === undefined ? 0 : arguments[1];
     var z = arguments[2] === undefined ? 0 : arguments[2];
     var w = arguments[3] === undefined ? 1 : arguments[3];
+    _get(Object.getPrototypeOf(Quaternion.prototype), "constructor", this).call(this);
     this._x = x;
     this._y = y;
     this._z = z;
     this._w = w;
   }
 
+  _inherits(Quaternion, Emitter);
+
   _prototypeProperties(Quaternion, null, {
     x: {
       set: function (x) {
         this._x = x;
+
+        this.emit("update");
       },
       get: function () {
         return this._x;
@@ -1487,6 +1504,8 @@ var Quaternion = (function () {
     y: {
       set: function (y) {
         this._y = y;
+
+        this.emit("update");
       },
       get: function () {
         return this._y;
@@ -1497,6 +1516,8 @@ var Quaternion = (function () {
     z: {
       set: function (z) {
         this._z = z;
+
+        this.emit("update");
       },
       get: function () {
         return this._z;
@@ -1507,6 +1528,8 @@ var Quaternion = (function () {
     w: {
       set: function (w) {
         this._w = w;
+
+        this.emit("update");
       },
       get: function () {
         return this._w;
@@ -1516,12 +1539,16 @@ var Quaternion = (function () {
     },
     setAxisAngle: {
       value: function setAxisAngle(axis, rad) {
-        rad = rad * 0.5;
+        rad *= 0.5;
         var s = Math.sin(rad);
-        this.x = s * axis.x;
-        this.y = s * axis.y;
-        this.z = s * axis.z;
-        this.w = Math.cos(rad);
+
+        this._x = s * axis.x;
+        this._y = s * axis.y;
+        this._z = s * axis.z;
+        this._w = Math.cos(rad);
+
+        this.emit("update");
+
         return this;
       },
       writable: true,
@@ -1530,19 +1557,22 @@ var Quaternion = (function () {
     },
     normalize: {
       value: function normalize() {
-        var x = this.x,
-            y = this.y,
-            z = this.z,
-            w = this.w;
+        var x = this._x,
+            y = this._y,
+            z = this._z,
+            w = this._w;
+
         var len = x * x + y * y + z * z + w * w;
 
         if (len > 0) {
           len = 1 / Math.sqrt(len);
-          this.x *= len;
-          this.y *= len;
-          this.z *= len;
-          this.w *= len;
+          this._x *= len;
+          this._y *= len;
+          this._z *= len;
+          this._w *= len;
         }
+
+        this.emit("update");
 
         return this;
       },
@@ -1552,34 +1582,39 @@ var Quaternion = (function () {
     },
     rotationTo: {
       value: function rotationTo(a, b) {
-        var tmpvec3;
-        var xUnitVec3 = new Vector3(1, 0, 0);
-        var yUnitVec3 = new Vector3(0, 1, 0);
+        var temp,
+            xUnitVec3 = new Vector3(1, 0, 0),
+            yUnitVec3 = new Vector3(0, 1, 0);
 
         var dot = a.dot(b);
 
         if (dot < -0.999999) {
-          tmpvec3 = xUnitVec3.cross(a);
+          temp = xUnitVec3.cross(a);
 
-          if (tmpvec3.getLength() < 0.000001) {
-            tmpvec3 = yUnitVec3.cross(a);
+          if (temp.getLength() < 0.000001) {
+            temp = yUnitVec3.cross(a);
           }
 
-          tmpvec3.normalize();
-          this.setAxisAngle(tmpvec3, Math.PI);
+          temp.normalize();
+          this.setAxisAngle(temp, Math.PI);
+
           return this;
         } else if (dot > 0.999999) {
-          this.x = 0;
-          this.y = 0;
-          this.z = 0;
-          this.w = 1;
+          this._x = 0;
+          this._y = 0;
+          this._z = 0;
+          this._w = 1;
+
+          this.emit("update");
+
           return this;
         } else {
-          tmpvec3 = a.cross(b);
-          this.x = tmpvec3.x;
-          this.y = tmpvec3.y;
-          this.z = tmpvec3.z;
-          this.w = 1 + dot;
+          temp = a.cross(b);
+          this._x = temp.x;
+          this._y = temp.y;
+          this._z = temp.z;
+          this._w = 1 + dot;
+
           return this.normalize();
         }
       },
@@ -1591,17 +1626,19 @@ var Quaternion = (function () {
       value: function rotateX(rad) {
         rad *= 0.5;
 
-        var ax = this.x,
-            ay = this.y,
-            az = this.z,
-            aw = this.w,
+        var ax = this._x,
+            ay = this._y,
+            az = this._z,
+            aw = this._w,
             bx = Math.sin(rad),
             bw = Math.cos(rad);
 
-        this.x = ax * bw + aw * bx;
-        this.y = ay * bw + az * bx;
-        this.z = az * bw - ay * bx;
-        this.w = aw * bw - ax * bx;
+        this._x = ax * bw + aw * bx;
+        this._y = ay * bw + az * bx;
+        this._z = az * bw - ay * bx;
+        this._w = aw * bw - ax * bx;
+
+        this.emit("update");
 
         return this;
       },
@@ -1613,17 +1650,19 @@ var Quaternion = (function () {
       value: function rotateY(rad) {
         rad *= 0.5;
 
-        var ax = this.x,
-            ay = this.y,
-            az = this.z,
-            aw = this.w,
+        var ax = this._x,
+            ay = this._y,
+            az = this._z,
+            aw = this._w,
             by = Math.sin(rad),
             bw = Math.cos(rad);
 
-        this.x = ax * bw - az * by;
-        this.y = ay * bw + aw * by;
-        this.z = az * bw + ax * by;
-        this.w = aw * bw - ay * by;
+        this._x = ax * bw - az * by;
+        this._y = ay * bw + aw * by;
+        this._z = az * bw + ax * by;
+        this._w = aw * bw - ay * by;
+
+        this.emit("update");
 
         return this;
       },
@@ -1635,17 +1674,19 @@ var Quaternion = (function () {
       value: function rotateZ(rad) {
         rad *= 0.5;
 
-        var ax = this.x,
-            ay = this.y,
-            az = this.z,
-            aw = this.w,
+        var ax = this._x,
+            ay = this._y,
+            az = this._z,
+            aw = this._w,
             bz = Math.sin(rad),
             bw = Math.cos(rad);
 
-        this.x = ax * bw + ay * bz;
-        this.y = ay * bw - ax * bz;
-        this.z = az * bw + aw * bz;
-        this.w = aw * bw - az * bz;
+        this._x = ax * bw + ay * bz;
+        this._y = ay * bw - ax * bz;
+        this._z = az * bw + aw * bz;
+        this._w = aw * bw - az * bz;
+
+        this.emit("update");
 
         return this;
       },
@@ -1656,7 +1697,7 @@ var Quaternion = (function () {
   });
 
   return Quaternion;
-})();
+})(Emitter);
 
 var Ray = (function () {
   function Ray() {
@@ -1819,8 +1860,8 @@ var Vector3 = (function (Emitter) {
         return this._x;
       },
       set: function (x) {
-        this.emit("update");
         this._x = x;
+        this.emit("update");
       },
       enumerable: true,
       configurable: true
@@ -1830,8 +1871,8 @@ var Vector3 = (function (Emitter) {
         return this._y;
       },
       set: function (y) {
-        this.emit("update");
         this._y = y;
+        this.emit("update");
       },
       enumerable: true,
       configurable: true
@@ -1841,17 +1882,19 @@ var Vector3 = (function (Emitter) {
         return this._z;
       },
       set: function (z) {
-        this.emit("update");
         this._z = z;
+        this.emit("update");
       },
       enumerable: true,
       configurable: true
     },
     set: {
       value: function set(x, y, z) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
+        this._x = x;
+        this._y = y;
+        this._z = z;
+
+        this.emit("update");
       },
       writable: true,
       enumerable: true,
@@ -1868,15 +1911,16 @@ var Vector3 = (function (Emitter) {
         }
 
         if (typeof value === "object") {
-          out.x += value.x;
-          out.y += value.y;
-          out.z += value.z;
+          out._x += value.x;
+          out._y += value.y;
+          out._z += value.z;
         } else {
-          out.x += value;
-          out.y += value;
-          out.z += value;
+          out._x += value;
+          out._y += value;
+          out._z += value;
         }
 
+        this.emit("update");
         return out;
       },
       writable: true,
@@ -1894,9 +1938,11 @@ var Vector3 = (function (Emitter) {
         }
 
         if (typeof value === "object") {
-          out.x -= value.x;
-          out.y -= value.y;
-          out.z -= value.z;
+          out._x -= value.x;
+          out._y -= value.y;
+          out._z -= value.z;
+
+          this.emit("update");
         } else {
           out.add(-value);
         }
@@ -1918,14 +1964,16 @@ var Vector3 = (function (Emitter) {
         }
 
         if (typeof value === "object") {
-          out.x *= value.x;
-          out.y *= value.y;
-          out.z *= value.z;
+          out._x *= value.x;
+          out._y *= value.y;
+          out._z *= value.z;
         } else {
-          out.x *= value;
-          out.y *= value;
-          out.z *= value;
+          out._x *= value;
+          out._y *= value;
+          out._z *= value;
         }
+
+        this.emit("update");
 
         return out;
       },
@@ -1944,9 +1992,11 @@ var Vector3 = (function (Emitter) {
         }
 
         if (typeof value === "object") {
-          out.x /= value.x;
-          out.y /= value.y;
-          out.z /= value.z;
+          out._x /= value.x;
+          out._y /= value.y;
+          out._z /= value.z;
+
+          this.emit("update");
         } else {
           out.multiply(1 / value);
         }
@@ -1959,9 +2009,7 @@ var Vector3 = (function (Emitter) {
     },
     copy: {
       value: function copy(vector) {
-        this.x = vector.x;
-        this.y = vector.y;
-        this.z = vector.z;
+        this.set(vector.x, vector.y, vector.z);
 
         return this;
       },
@@ -2034,17 +2082,6 @@ var Vector3 = (function (Emitter) {
       enumerable: true,
       configurable: true
     },
-    applyMatrix4: {
-
-      /**
-       * @todo
-       * @param {Matrix4} matrix
-       */
-      value: function applyMatrix4(matrix) {},
-      writable: true,
-      enumerable: true,
-      configurable: true
-    },
     applyProjection: {
       value: function applyProjection(matrix) {
         var x = this.x,
@@ -2053,9 +2090,11 @@ var Vector3 = (function (Emitter) {
 
         var d = 1 / (matrix[3] * x + matrix[7] * y + matrix[11] * z + matrix[15]); // perspective divide
 
-        this.x = (matrix[0] * x + matrix[4] * y + matrix[8] * z + matrix[12]) * d;
-        this.y = (matrix[1] * x + matrix[5] * y + matrix[9] * z + matrix[13]) * d;
-        this.z = (matrix[2] * x + matrix[6] * y + matrix[10] * z + matrix[14]) * d;
+        this._x = (matrix[0] * x + matrix[4] * y + matrix[8] * z + matrix[12]) * d;
+        this._y = (matrix[1] * x + matrix[5] * y + matrix[9] * z + matrix[13]) * d;
+        this._z = (matrix[2] * x + matrix[6] * y + matrix[10] * z + matrix[14]) * d;
+
+        this.emit("update");
 
         return this;
       },
@@ -2441,9 +2480,66 @@ var Object3D = (function () {
     this.initiated = false;
 
     this.display = true;
+    this.getMatrix();
   }
 
   _prototypeProperties(Object3D, null, {
+    rotation: {
+      set: function (rotation) {
+        var _this = this;
+        this._rotation = rotation;
+        rotation.on("update", function () {
+          _this.getMatrix();
+        });
+      },
+      get: function () {
+        return this._rotation;
+      },
+      enumerable: true,
+      configurable: true
+    },
+    position: {
+      set: function (position) {
+        var _this = this;
+        this._position = position;
+        position.on("update", function () {
+          _this.getMatrix();
+        });
+      },
+      get: function () {
+        return this._position;
+      },
+      enumerable: true,
+      configurable: true
+    },
+    scale: {
+      set: function (scale) {
+        var _this = this;
+        this._scale = scale;
+        scale.on("update", function () {
+          _this.getMatrix();
+        });
+      },
+      get: function () {
+        return this._scale;
+      },
+      enumerable: true,
+      configurable: true
+    },
+    origin: {
+      set: function (origin) {
+        var _this = this;
+        this._origin = origin;
+        origin.on("update", function () {
+          _this.getMatrix();
+        });
+      },
+      get: function () {
+        return this._origin;
+      },
+      enumerable: true,
+      configurable: true
+    },
     getMatrix: {
 
       /**
@@ -2829,11 +2925,11 @@ var ShaderProgrammer = (function () {
         }, "pMatrix");
 
         var vMatrix = vertexProgram.uniform("mat4", function () {
-          this.value(renderer.camera.getMatrix());
+          this.value(renderer.camera.viewMatrix);
         }, "vMatrix");
 
         var mMatrix = vertexProgram.uniform("mat4", function () {
-          this.value(obj.getMatrix());
+          this.value(obj.matrix);
         }, "mMatrix");
 
         vertexProgram.code("mat4 mvMatrix = %vm * %mm; gl_Position = %p * mvMatrix * vec4(%vp, 1.0);", {

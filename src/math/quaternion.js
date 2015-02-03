@@ -1,7 +1,10 @@
+import Emitter from '../core/emitter.js';
+
 export default
-class Quaternion {
+class Quaternion extends Emitter {
 
   constructor(x = 0, y = 0, z = 0, w = 1) {
+    super();
     this._x = x;
     this._y = y;
     this._z = z;
@@ -10,18 +13,26 @@ class Quaternion {
 
   set x(x) {
     this._x = x;
+
+    this.emit('update');
   }
 
   set y(y) {
     this._y = y;
+
+    this.emit('update');
   }
 
   set z(z) {
     this._z = z;
+
+    this.emit('update');
   }
 
   set w(w) {
     this._w = w;
+
+    this.emit('update');
   }
 
   get x() {
@@ -41,62 +52,74 @@ class Quaternion {
   }
 
   setAxisAngle(axis, rad) {
-    rad = rad * 0.5;
+    rad *= 0.5;
     var s = Math.sin(rad);
-    this.x = s * axis.x;
-    this.y = s * axis.y;
-    this.z = s * axis.z;
-    this.w = Math.cos(rad);
+
+    this._x = s * axis.x;
+    this._y = s * axis.y;
+    this._z = s * axis.z;
+    this._w = Math.cos(rad);
+
+    this.emit('update');
+
     return this;
   }
 
   normalize() {
-    var x = this.x,
-      y = this.y,
-      z = this.z,
-      w = this.w;
+    var x = this._x,
+      y = this._y,
+      z = this._z,
+      w = this._w;
+
     var len = x * x + y * y + z * z + w * w;
 
     if (len > 0) {
       len = 1 / Math.sqrt(len);
-      this.x *= len;
-      this.y *= len;
-      this.z *= len;
-      this.w *= len;
+      this._x *= len;
+      this._y *= len;
+      this._z *= len;
+      this._w *= len;
     }
+
+    this.emit('update');
 
     return this
   }
 
   rotationTo(a, b) {
-    var tmpvec3;
-    var xUnitVec3 = new Vector3(1, 0, 0);
-    var yUnitVec3 = new Vector3(0, 1, 0);
+    var temp,
+      xUnitVec3 = new Vector3(1, 0, 0),
+      yUnitVec3 = new Vector3(0, 1, 0);
 
     var dot = a.dot(b);
 
     if (dot < -0.999999) {
-      tmpvec3 = xUnitVec3.cross(a);
+      temp = xUnitVec3.cross(a);
 
-      if (tmpvec3.getLength() < 0.000001) {
-        tmpvec3 = yUnitVec3.cross(a);
+      if (temp.getLength() < 0.000001) {
+        temp = yUnitVec3.cross(a);
       }
 
-      tmpvec3.normalize();
-      this.setAxisAngle(tmpvec3, Math.PI);
+      temp.normalize();
+      this.setAxisAngle(temp, Math.PI);
+
       return this;
     } else if (dot > 0.999999) {
-      this.x = 0;
-      this.y = 0;
-      this.z = 0;
-      this.w = 1;
+      this._x = 0;
+      this._y = 0;
+      this._z = 0;
+      this._w = 1;
+
+      this.emit('update');
+
       return this;
     } else {
-      tmpvec3 = a.cross(b);
-      this.x = tmpvec3.x;
-      this.y = tmpvec3.y;
-      this.z = tmpvec3.z;
-      this.w = 1 + dot;
+      temp = a.cross(b);
+      this._x = temp.x;
+      this._y = temp.y;
+      this._z = temp.z;
+      this._w = 1 + dot;
+
       return this.normalize();
     }
   }
@@ -105,13 +128,20 @@ class Quaternion {
   rotateX(rad) {
     rad *= 0.5;
 
-    var ax = this.x, ay = this.y, az = this.z, aw = this.w,
-      bx = Math.sin(rad), bw = Math.cos(rad);
+    var
+      ax = this._x,
+      ay = this._y,
+      az = this._z,
+      aw = this._w,
+      bx = Math.sin(rad),
+      bw = Math.cos(rad);
 
-    this.x = ax * bw + aw * bx;
-    this.y = ay * bw + az * bx;
-    this.z = az * bw - ay * bx;
-    this.w = aw * bw - ax * bx;
+    this._x = ax * bw + aw * bx;
+    this._y = ay * bw + az * bx;
+    this._z = az * bw - ay * bx;
+    this._w = aw * bw - ax * bx;
+
+    this.emit('update');
 
     return this;
   }
@@ -119,13 +149,19 @@ class Quaternion {
   rotateY(rad) {
     rad *= 0.5;
 
-    var ax = this.x, ay = this.y, az = this.z, aw = this.w,
+    var
+      ax = this._x,
+      ay = this._y,
+      az = this._z,
+      aw = this._w,
       by = Math.sin(rad), bw = Math.cos(rad);
 
-    this.x = ax * bw - az * by;
-    this.y = ay * bw + aw * by;
-    this.z = az * bw + ax * by;
-    this.w = aw * bw - ay * by;
+    this._x = ax * bw - az * by;
+    this._y = ay * bw + aw * by;
+    this._z = az * bw + ax * by;
+    this._w = aw * bw - ay * by;
+
+    this.emit('update');
 
     return this;
   }
@@ -133,13 +169,19 @@ class Quaternion {
   rotateZ(rad) {
     rad *= 0.5;
 
-    var ax = this.x, ay = this.y, az = this.z, aw = this.w,
+    var
+      ax = this._x,
+      ay = this._y,
+      az = this._z,
+      aw = this._w,
       bz = Math.sin(rad), bw = Math.cos(rad);
 
-    this.x = ax * bw + ay * bz;
-    this.y = ay * bw - ax * bz;
-    this.z = az * bw + aw * bz;
-    this.w = aw * bw - az * bz;
+    this._x = ax * bw + ay * bz;
+    this._y = ay * bw - ax * bz;
+    this._z = az * bw + aw * bz;
+    this._w = aw * bw - az * bz;
+
+    this.emit('update');
 
     return this;
   }

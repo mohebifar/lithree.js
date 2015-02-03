@@ -2,6 +2,7 @@ import Emitter from '../core/emitter.js';
 
 export default
 class Vector3 extends Emitter {
+
   constructor(x = 0, y = 0, z = 0) {
     super();
 
@@ -27,24 +28,26 @@ class Vector3 extends Emitter {
   }
 
   set x(x) {
-    this.emit('update');
     this._x = x;
+    this.emit('update');
   }
 
   set y(y) {
-    this.emit('update');
     this._y = y;
+    this.emit('update');
   }
 
   set z(z) {
-    this.emit('update');
     this._z = z;
+    this.emit('update');
   }
 
   set(x, y, z) {
-    this.x = x;
-    this.y = y;
-    this.z = z;
+    this._x = x;
+    this._y = y;
+    this._z = z;
+
+    this.emit('update');
   }
 
   add(value, create = false) {
@@ -56,15 +59,16 @@ class Vector3 extends Emitter {
     }
 
     if (typeof value === 'object') {
-      out.x += value.x;
-      out.y += value.y;
-      out.z += value.z;
+      out._x += value.x;
+      out._y += value.y;
+      out._z += value.z;
     } else {
-      out.x += value;
-      out.y += value;
-      out.z += value;
+      out._x += value;
+      out._y += value;
+      out._z += value;
     }
 
+    this.emit('update');
     return out;
   }
 
@@ -77,9 +81,11 @@ class Vector3 extends Emitter {
     }
 
     if (typeof value === 'object') {
-      out.x -= value.x;
-      out.y -= value.y;
-      out.z -= value.z;
+      out._x -= value.x;
+      out._y -= value.y;
+      out._z -= value.z;
+
+      this.emit('update');
     } else {
       out.add(-value);
     }
@@ -96,14 +102,16 @@ class Vector3 extends Emitter {
     }
 
     if (typeof value === 'object') {
-      out.x *= value.x;
-      out.y *= value.y;
-      out.z *= value.z;
+      out._x *= value.x;
+      out._y *= value.y;
+      out._z *= value.z;
     } else {
-      out.x *= value;
-      out.y *= value;
-      out.z *= value;
+      out._x *= value;
+      out._y *= value;
+      out._z *= value;
     }
+
+    this.emit('update');
 
     return out;
   }
@@ -117,9 +125,11 @@ class Vector3 extends Emitter {
     }
 
     if (typeof value === 'object') {
-      out.x /= value.x;
-      out.y /= value.y;
-      out.z /= value.z;
+      out._x /= value.x;
+      out._y /= value.y;
+      out._z /= value.z;
+
+      this.emit('update');
     } else {
       out.multiply(1 / value);
     }
@@ -128,9 +138,7 @@ class Vector3 extends Emitter {
   }
 
   copy(vector) {
-    this.x = vector.x;
-    this.y = vector.y;
-    this.z = vector.z;
+    this.set(vector.x, vector.y, vector.z);
 
     return this;
   }
@@ -172,23 +180,17 @@ class Vector3 extends Emitter {
     return this.applyProjection(matrix);
   }
 
-  /**
-   * @todo
-   * @param {Matrix4} matrix
-   */
-  applyMatrix4(matrix) {
-
-  }
-
   applyProjection(matrix) {
 
     var x = this.x, y = this.y, z = this.z;
 
     var d = 1 / ( matrix[3] * x + matrix[7] * y + matrix[11] * z + matrix[15] ); // perspective divide
 
-    this.x = ( matrix[0] * x + matrix[4] * y + matrix[8] * z + matrix[12] ) * d;
-    this.y = ( matrix[1] * x + matrix[5] * y + matrix[9] * z + matrix[13] ) * d;
-    this.z = ( matrix[2] * x + matrix[6] * y + matrix[10] * z + matrix[14] ) * d;
+    this._x = ( matrix[0] * x + matrix[4] * y + matrix[8] * z + matrix[12] ) * d;
+    this._y = ( matrix[1] * x + matrix[5] * y + matrix[9] * z + matrix[13] ) * d;
+    this._z = ( matrix[2] * x + matrix[6] * y + matrix[10] * z + matrix[14] ) * d;
+
+    this.emit('update');
 
     return this;
 
