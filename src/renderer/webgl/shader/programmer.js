@@ -16,6 +16,7 @@ class ShaderProgrammer {
    * @param object
    */
   constructor(renderer, object) {
+
     this.object = object;
     this.renderer = renderer;
 
@@ -28,6 +29,7 @@ class ShaderProgrammer {
     this.initLighting();
     this.initPositionCamera();
     this.create();
+
   }
 
   /**
@@ -90,6 +92,7 @@ class ShaderProgrammer {
    * @method initPositionCamera
    */
   initPositionCamera() {
+
     var obj = this.object,
       gl = this.gl,
       buffers = obj.buffers,
@@ -108,15 +111,21 @@ class ShaderProgrammer {
       this.value(renderer.camera.projectionMatrix);
     }, 'pMatrix');
 
-    var mvMatrix = vertexProgram.uniform('mat4', function () {
-      this.value(Matrix4.multiply(renderer.camera.getMatrix(), obj.getMatrix()));
-    }, 'mvMatrix');
+    var vMatrix = vertexProgram.uniform('mat4', function () {
+      this.value(renderer.camera.getMatrix());
+    }, 'vMatrix');
 
-    vertexProgram.code('gl_Position = %p * %m * vec4(%v, 1.0);', {
+    var mMatrix = vertexProgram.uniform('mat4', function () {
+      this.value(obj.getMatrix());
+    }, 'mMatrix');
+
+    vertexProgram.code('mat4 mvMatrix = %vm * %mm; gl_Position = %p * mvMatrix * vec4(%vp, 1.0);', {
       p: pMatrix,
-      m: mvMatrix,
-      v: position
+      vm: vMatrix,
+      mm: mMatrix,
+      vp: position
     });
+
   }
 
   /**
@@ -125,6 +134,7 @@ class ShaderProgrammer {
    * @method initLighting
    */
   initLighting() {
+
     var obj = this.object,
       vertexProgram = this.vertexProgram,
       fragmentProgram = this.fragmentProgram,
@@ -138,6 +148,7 @@ class ShaderProgrammer {
     }, 'vColor');
 
     if (world.lights.length > 0) {
+
       vertexProgram.attribute('vec3', function () {
         this.value(obj.buffers.normals);
       }, 'vNormal');
@@ -180,7 +191,9 @@ class ShaderProgrammer {
       fragmentProgram.code('gl_FragColor = vec4(%c, 1.0);', {
         c: color
       });
+
     }
+
   }
 
   /**
@@ -189,7 +202,9 @@ class ShaderProgrammer {
    * @method use
    */
   use() {
+
     this.gl.useProgram(this.program);
+
   }
 
   /**
@@ -201,6 +216,7 @@ class ShaderProgrammer {
    * @return {WebGLShader} The shader.
    */
   compile(source, shaderType) {
+
     var gl = this.gl;
     // Create the shader object
     var shader = gl.createShader(shaderType);
@@ -220,6 +236,7 @@ class ShaderProgrammer {
     }
 
     return shader;
+
   }
 
   /**
@@ -228,6 +245,7 @@ class ShaderProgrammer {
    * @returns {WebGLProgram}
    */
   create() {
+
     var gl = this.gl;
     var program = gl.createProgram();
 
@@ -248,6 +266,7 @@ class ShaderProgrammer {
     this.vertexProgram.init();
     this.fragmentProgram.init();
     return program;
+
   }
 
 }
