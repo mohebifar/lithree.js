@@ -21,8 +21,8 @@ class PerspectiveCamera {
     this.viewMatrix = new Matrix4();
     this.lookAt = new Vector3();
     this.position = new Vector3();
-    this.rotation = new Vector3();
-    this.up = new Vector3();
+    this.rotation = new Quaternion();
+    this.up = new Vector3(0, 1, 0);
     this._zoom = 1;
 
     var _this = this;
@@ -69,15 +69,9 @@ class PerspectiveCamera {
   }
 
   getMatrix() {
-    var matrix = this.viewMatrix;
+    this.viewMatrix = Matrix4.fromRotationTranslationScaleOrigin(this.rotation, this.position, new Vector3(1, 1, 1), new Vector3());
 
-    matrix.identity();
-    matrix.translate(this.position);
-    matrix.rotateX(this.rotation.x);
-    matrix.rotateY(this.rotation.y);
-    matrix.rotateZ(this.rotation.z);
-
-    return matrix;
+    return this.viewMatrix;
   }
 
 }

@@ -119,7 +119,7 @@ class ShaderProgrammer {
       this.value(obj.matrix);
     }, 'mMatrix');
 
-    vertexProgram.code('mat4 mvMatrix = %vm * %mm; gl_Position = %p * mvMatrix * vec4(%vp, 1.0);', {
+    vertexProgram.code('mat4 mvMatrix = %vm * %mm; gl_Position = %p * %vm * %mm  * vec4(%vp, 1.0);', {
       p: pMatrix,
       vm: vMatrix,
       mm: mMatrix,

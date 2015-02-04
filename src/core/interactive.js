@@ -6,7 +6,6 @@ class Interactive extends Emitter {
   constructor(renderer) {
     super();
     this.isDragging = false;
-    this.lastDown = 0;
     this.clickFlag = false;
     this.lastPosition = {x: 0, y: 0};
     this.renderer = renderer;
@@ -59,10 +58,15 @@ class Interactive extends Emitter {
       _this.clickFlag = true;
 
       if (_this.hasEvent('start')) {
-        _this.emit('start', _this.lastPosition, unproject);
+        _this.emit('start', _this.lastPosition, unproject, e);
+        return false;
       }
 
-      _this.lastDown = Date.now();
+    });
+
+    dom.addEventListener('contextmenu', function (e) {
+      e.preventDefault();
+
     });
 
     dom.addEventListener('mousemove', function (e) {
@@ -73,12 +77,12 @@ class Interactive extends Emitter {
         _this.updatePosition(e.clientX, e.clientY);
 
         if (_this.hasEvent('drag')) {
-          _this.emit('drag', _this.lastPosition, _this.delta, unproject);
+          _this.emit('drag', _this.lastPosition, _this.delta, unproject, e);
         }
       } else if (_this.hasEvent('move')) {
         _this.updatePosition(e.clientX, e.clientY);
 
-        _this.emit('move', _this.lastPosition, _this.delta, unproject);
+        _this.emit('move', _this.lastPosition, _this.delta, unproject, e);
       }
     });
 
@@ -89,17 +93,25 @@ class Interactive extends Emitter {
       _this.updatePosition(e.clientX, e.clientY);
 
       if (_this.hasEvent('click') && _this.clickFlag === true) {
-        _this.emit('click', _this.lastPosition, unproject);
+        _this.emit('click', _this.lastPosition, unproject, e);
       } else if (_this.hasEvent('end')) {
-        _this.emit('end', _this.lastPosition, unproject);
+        _this.emit('end', _this.lastPosition, unproject, e);
       }
     });
 
     dom.addEventListener('mousewheel', function (e) {
       e.preventDefault();
 
-      if(_this.hasEvent('wheel')) {
-        _this.emit('wheel', e);
+      if (_this.hasEvent('wheel')) {
+        _this.emit('wheel', e.wheelDelta, e);
+      }
+    });
+
+    dom.addEventListener('DOMMouseScroll', function (e) {
+      e.preventDefault();
+
+      if (_this.hasEvent('wheel')) {
+        _this.emit('wheel', e.detail * -40, e);
       }
     });
   }
