@@ -65,8 +65,8 @@ var PerspectiveCamera = (function () {
     this.viewMatrix = new Matrix4();
     this.lookAt = new Vector3();
     this.position = new Vector3();
-    this.rotation = new Vector3();
-    this.up = new Vector3();
+    this.rotation = new Quaternion();
+    this.up = new Vector3(0, 1, 0);
     this._zoom = 1;
 
     var _this = this;
@@ -123,15 +123,9 @@ var PerspectiveCamera = (function () {
     },
     getMatrix: {
       value: function getMatrix() {
-        var matrix = this.viewMatrix;
+        this.viewMatrix = Matrix4.fromRotationTranslationScaleOrigin(this.rotation, this.position, new Vector3(1, 1, 1), new Vector3());
 
-        matrix.identity();
-        matrix.translate(this.position);
-        matrix.rotateX(this.rotation.x);
-        matrix.rotateY(this.rotation.y);
-        matrix.rotateZ(this.rotation.z);
-
-        return matrix;
+        return this.viewMatrix;
       },
       writable: true,
       enumerable: true,
@@ -428,7 +422,6 @@ var Interactive = (function (Emitter) {
   function Interactive(renderer) {
     _get(Object.getPrototypeOf(Interactive.prototype), "constructor", this).call(this);
     this.isDragging = false;
-    this.lastDown = 0;
     this.clickFlag = false;
     this.lastPosition = { x: 0, y: 0 };
     this.renderer = renderer;
@@ -490,10 +483,13 @@ var Interactive = (function (Emitter) {
           _this.clickFlag = true;
 
           if (_this.hasEvent("start")) {
-            _this.emit("start", _this.lastPosition, unproject);
+            _this.emit("start", _this.lastPosition, unproject, e);
+            return false;
           }
+        });
 
-          _this.lastDown = Date.now();
+        dom.addEventListener("contextmenu", function (e) {
+          e.preventDefault();
         });
 
         dom.addEventListener("mousemove", function (e) {
@@ -504,12 +500,12 @@ var Interactive = (function (Emitter) {
             _this.updatePosition(e.clientX, e.clientY);
 
             if (_this.hasEvent("drag")) {
-              _this.emit("drag", _this.lastPosition, _this.delta, unproject);
+              _this.emit("drag", _this.lastPosition, _this.delta, unproject, e);
             }
           } else if (_this.hasEvent("move")) {
             _this.updatePosition(e.clientX, e.clientY);
 
-            _this.emit("move", _this.lastPosition, _this.delta, unproject);
+            _this.emit("move", _this.lastPosition, _this.delta, unproject, e);
           }
         });
 
@@ -520,9 +516,9 @@ var Interactive = (function (Emitter) {
           _this.updatePosition(e.clientX, e.clientY);
 
           if (_this.hasEvent("click") && _this.clickFlag === true) {
-            _this.emit("click", _this.lastPosition, unproject);
+            _this.emit("click", _this.lastPosition, unproject, e);
           } else if (_this.hasEvent("end")) {
-            _this.emit("end", _this.lastPosition, unproject);
+            _this.emit("end", _this.lastPosition, unproject, e);
           }
         });
 
@@ -530,7 +526,15 @@ var Interactive = (function (Emitter) {
           e.preventDefault();
 
           if (_this.hasEvent("wheel")) {
-            _this.emit("wheel", e);
+            _this.emit("wheel", e.wheelDelta, e);
+          }
+        });
+
+        dom.addEventListener("DOMMouseScroll", function (e) {
+          e.preventDefault();
+
+          if (_this.hasEvent("wheel")) {
+            _this.emit("wheel", e.detail * -40, e);
           }
         });
       },
@@ -1580,48 +1584,6 @@ var Quaternion = (function (Emitter) {
       enumerable: true,
       configurable: true
     },
-    rotationTo: {
-      value: function rotationTo(a, b) {
-        var temp,
-            xUnitVec3 = new Vector3(1, 0, 0),
-            yUnitVec3 = new Vector3(0, 1, 0);
-
-        var dot = a.dot(b);
-
-        if (dot < -0.999999) {
-          temp = xUnitVec3.cross(a);
-
-          if (temp.getLength() < 0.000001) {
-            temp = yUnitVec3.cross(a);
-          }
-
-          temp.normalize();
-          this.setAxisAngle(temp, Math.PI);
-
-          return this;
-        } else if (dot > 0.999999) {
-          this._x = 0;
-          this._y = 0;
-          this._z = 0;
-          this._w = 1;
-
-          this.emit("update");
-
-          return this;
-        } else {
-          temp = a.cross(b);
-          this._x = temp.x;
-          this._y = temp.y;
-          this._z = temp.z;
-          this._w = 1 + dot;
-
-          return this.normalize();
-        }
-      },
-      writable: true,
-      enumerable: true,
-      configurable: true
-    },
     rotateX: {
       value: function rotateX(rad) {
         rad *= 0.5;
@@ -1685,6 +1647,30 @@ var Quaternion = (function (Emitter) {
         this._y = ay * bw - ax * bz;
         this._z = az * bw + aw * bz;
         this._w = aw * bw - az * bz;
+
+        this.emit("update");
+
+        return this;
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    multiply: {
+      value: function multiply(b) {
+        var ax = this.x,
+            ay = this.y,
+            az = this.z,
+            aw = this.w,
+            bx = b.x,
+            by = b.y,
+            bz = b.z,
+            bw = b.w;
+
+        this._x = ax * bw + aw * bx + ay * bz - az * by;
+        this._y = ay * bw + aw * by + az * bx - ax * bz;
+        this._z = az * bw + aw * bz + ax * by - ay * bx;
+        this._w = aw * bw - ax * bx - ay * by - az * bz;
 
         this.emit("update");
 
@@ -2932,7 +2918,7 @@ var ShaderProgrammer = (function () {
           this.value(obj.matrix);
         }, "mMatrix");
 
-        vertexProgram.code("mat4 mvMatrix = %vm * %mm; gl_Position = %p * mvMatrix * vec4(%vp, 1.0);", {
+        vertexProgram.code("mat4 mvMatrix = %vm * %mm; gl_Position = %p * %vm * %mm  * vec4(%vp, 1.0);", {
           p: pMatrix,
           vm: vMatrix,
           mm: mMatrix,

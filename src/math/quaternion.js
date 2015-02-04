@@ -86,45 +86,6 @@ class Quaternion extends Emitter {
     return this
   }
 
-  rotationTo(a, b) {
-    var temp,
-      xUnitVec3 = new Vector3(1, 0, 0),
-      yUnitVec3 = new Vector3(0, 1, 0);
-
-    var dot = a.dot(b);
-
-    if (dot < -0.999999) {
-      temp = xUnitVec3.cross(a);
-
-      if (temp.getLength() < 0.000001) {
-        temp = yUnitVec3.cross(a);
-      }
-
-      temp.normalize();
-      this.setAxisAngle(temp, Math.PI);
-
-      return this;
-    } else if (dot > 0.999999) {
-      this._x = 0;
-      this._y = 0;
-      this._z = 0;
-      this._w = 1;
-
-      this.emit('update');
-
-      return this;
-    } else {
-      temp = a.cross(b);
-      this._x = temp.x;
-      this._y = temp.y;
-      this._z = temp.z;
-      this._w = 1 + dot;
-
-      return this.normalize();
-    }
-  }
-
-
   rotateX(rad) {
     rad *= 0.5;
 
@@ -180,6 +141,20 @@ class Quaternion extends Emitter {
     this._y = ay * bw - ax * bz;
     this._z = az * bw + aw * bz;
     this._w = aw * bw - az * bz;
+
+    this.emit('update');
+
+    return this;
+  }
+
+  multiply(b) {
+    var ax = this.x, ay = this.y, az = this.z, aw = this.w,
+      bx = b.x, by = b.y, bz = b.z, bw = b.w;
+
+    this._x = ax * bw + aw * bx + ay * bz - az * by;
+    this._y = ay * bw + aw * by + az * bx - ax * bz;
+    this._z = az * bw + aw * bz + ax * by - ay * bx;
+    this._w = aw * bw - ax * bx - ay * by - az * bz;
 
     this.emit('update');
 
