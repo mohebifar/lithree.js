@@ -172,11 +172,16 @@ class Vector3 extends Emitter {
     return Math.acos(this.dot(vector) / this.getLength() / vector.getLength());
   }
 
-  unproject(camera) {
-    var m = camera.getMatrix(),
-      p = camera.getProjection().clone();
+  unproject(i) {
+    if(i instanceof Matrix4) {
+      var matrix = i.invert();
+    } else {
+      var m = i.getMatrix().clone(),
+        p = i.getProjection().clone();
 
-    var matrix = Matrix4.multiplyMatrices(m, p.invert());
+      var matrix = Matrix4.multiplyMatrices(m, p.invert());
+    }
+
     return this.applyProjection(matrix);
   }
 

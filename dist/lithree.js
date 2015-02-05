@@ -1695,7 +1695,16 @@ var Ray = (function () {
     })();
   }
 
-  _prototypeProperties(Ray, null, {
+  _prototypeProperties(Ray, {
+    fromPoints: {
+      value: function fromPoints(point1, point2) {
+        return new Ray(point1, point2.subtract(point1).normalize());
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    }
+  }, {
     set: {
       value: function set(origin, direction) {
         this.origin = origin;
@@ -1716,87 +1725,45 @@ var Ray = (function () {
       enumerable: true,
       configurable: true
     },
-    at: {
-      value: function at(t) {
-        var result = new Vector3();
-
-        return result.copy(this.direction).multiply(t).add(this.origin);
-      },
-      writable: true,
-      enumerable: true,
-      configurable: true
-    },
-    applyMatrix4: {
-      value: function applyMatrix4(matrix) {
-        this.direction.add(this.origin).applyMatrix4(matrix);
-      },
-      writable: true,
-      enumerable: true,
-      configurable: true
-    },
     intersectTriangle: {
-      value: function intersectTriangle(a, b, c, backfaceCulling, optionalTarget) {
-        // from http://www.geometrictools.com/LibMathematics/Intersection/Wm5IntrRay3Triangle3.cpp
+      value: function intersectTriangle(vert0, vert1, vert2) {
+        var orig = this.origin,
+            dir = this.direction,
+            t,
+            u,
+            v;
 
-        var diff = new Vector3();
-        var edge1 = new Vector3();
-        var edge2 = new Vector3();
-        var normal = new Vector3();
+        // find vectors for edges
+        var edge1 = vert1.subtract(vert0, true);
+        var edge2 = vert2.subtract(vert0, true);
 
-        edge1.copy(b).sub(a);
-        edge2.copy(c).sub(a);
+        // calculate determinant
+        var pvec = dir.cross(edge2);
+        var det = edge1.dot(pvec);
 
-        normal.copy(edge1).cross(edge2);
+        // calculations - CULLING ENABLED
+        var tvec = orig.subtract(vert0, true);
 
-        // Solve Q + t*D = b1*E1 + b2*E2 (Q = kDiff, D = ray direction,
-        // E1 = kEdge1, E2 = kEdge2, N = Cross(E1,E2)) by
-        //   |Dot(D,N)|*b1 = sign(Dot(D,N))*Dot(D,Cross(Q,E2))
-        //   |Dot(D,N)|*b2 = sign(Dot(D,N))*Dot(D,Cross(E1,Q))
-        //   |Dot(D,N)|*t = -sign(Dot(D,N))*Dot(Q,N)
-        var DdN = this.direction.dot(normal);
-        var sign;
-
-        if (DdN > 0) {
-          if (backfaceCulling) return null;
-          sign = 1;
-        } else if (DdN < 0) {
-          sign = -1;
-          DdN = -DdN;
-        } else {
+        u = tvec.dot(pvec);
+        if (u < 0 || u > det) {
           return null;
         }
 
-        diff.copy(this.origin).sub(a);
+        var qvec = tvec.cross(edge1);
 
-        var DdQxE2 = sign * this.direction.dot(edge2.copy(diff).cross(edge2));
-
-        // b1 < 0, no intersection
-        if (DdQxE2 < 0) {
+        v = dir.dot(qvec);
+        if (v < 0 || u + v > det) {
           return null;
         }
 
-        var DdE1xQ = sign * this.direction.dot(edge1.cross(diff));
+        t = edge2.dot(qvec);
 
-        // b2 < 0, no intersection
-        if (DdE1xQ < 0) {
-          return null;
-        }
+        var inv_det = 1 / det;
+        t = t * inv_det;
+        u = u * inv_det;
+        v = v * inv_det;
 
-        // b1+b2 > 1, no intersection
-        if (DdQxE2 + DdE1xQ > DdN) {
-          return null;
-        }
-
-        // Line intersects triangle, check if ray does.
-        var QdN = -sign * diff.dot(normal);
-
-        // t < 0, no intersection
-        if (QdN < 0) {
-          return null;
-        }
-
-        // Ray intersects triangle.
-        return this.at(QdN / DdN, optionalTarget);
+        return new Vector3(t, u, v);
       },
       writable: true,
       enumerable: true,
@@ -2057,11 +2024,16 @@ var Vector3 = (function (Emitter) {
       configurable: true
     },
     unproject: {
-      value: function unproject(camera) {
-        var m = camera.getMatrix(),
-            p = camera.getProjection().clone();
+      value: function unproject(i) {
+        if (i instanceof Matrix4) {
+          var matrix = i.invert();
+        } else {
+          var m = i.getMatrix().clone(),
+              p = i.getProjection().clone();
 
-        var matrix = Matrix4.multiplyMatrices(m, p.invert());
+          var matrix = Matrix4.multiplyMatrices(m, p.invert());
+        }
+
         return this.applyProjection(matrix);
       },
       writable: true,
@@ -3419,6 +3391,7 @@ root.LiThree = {
   Math: {
     Quaternion: Quaternion,
     Vector3: Vector3,
+    Ray: Ray,
     Matrix4: Matrix4
   },
   Light: {

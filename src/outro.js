@@ -12,6 +12,7 @@ root.LiThree = {
   Math: {
     Quaternion: Quaternion,
     Vector3: Vector3,
+    Ray: Ray,
     Matrix4: Matrix4
   },
   Light: {
