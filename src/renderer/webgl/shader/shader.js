@@ -106,7 +106,7 @@ class Shader {
    * @param params
    * @returns {Shader}
    */
-  code(code, params) {
+  code(code, params, line = 'append') {
 
     if (typeof params !== 'undefined') {
       for (var i in params) {
@@ -115,7 +115,11 @@ class Shader {
       }
     }
 
-    this._code += code + '\n';
+    if(line === 'append') {
+      this._code += code + '\n';
+    } else if(line === 'prepend') {
+      this._code = code + '\n' + this._code;
+    }
 
     return this;
   }

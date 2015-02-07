@@ -537,6 +537,10 @@ var Interactive = (function (Emitter) {
             _this.emit("wheel", e.detail * -40, e);
           }
         });
+
+        dom.addEventListener("mouseleave", function () {
+          _this.isDragging = false;
+        });
       },
       writable: true,
       enumerable: true,
@@ -549,64 +553,63 @@ var Interactive = (function (Emitter) {
 
 function computeNormal() {}
 var RayCaster = (function () {
-  function RayCaster(origin, direction) {
-    var near = arguments[2] === undefined ? 0 : arguments[2];
-    var far = arguments[3] === undefined ? Infinity : arguments[3];
-    this.ray = new Ray(origin, direction);
-
-    this.near = near;
-
-    this.far = far;
-
-    this.params = {
-      Sprite: {},
-      Mesh: {},
-      PointCloud: { threshold: 1 },
-      LOD: {},
-      Line: {}
-    };
-
-    this.precision = 0.0001;
-    this.linePrecision = 1;
+  /**
+   * @constructor
+   * @param {Ray} ray
+   */
+  function RayCaster(ray) {
+    this.ray = ray;
   }
 
-  _prototypeProperties(RayCaster, {
-    createFromCamera: {
-      value: function createFromCamera(coords, camera) {
-        if (camera instanceof PerspectiveCamera) {
-          var origin = new Vector3();
-          origin.copy(camera.position);
+  _prototypeProperties(RayCaster, null, {
+    intersectTriangle: {
+      value: function intersectTriangle(a, b, c) {
+        var ray = this.ray,
+            orig = ray.origin,
+            dir = ray.direction,
+            t,
+            u,
+            v;
 
-          var direction = new Vector3();
-          direction.set(coords.x, coords.y, 0.5).unproject(camera).sub(camera.position).normalize();
+        // find vectors for edges
+        var edge1 = b.subtract(a, true);
+        var edge2 = c.subtract(a, true);
 
-          return new RayCaster(origin, direction);
-        } else {
-          throw "Given camera cannot be ray casted.";
+        // calculate determinant
+        var pvec = dir.cross(edge2);
+        var det = edge1.dot(pvec);
+
+        // calculations - CULLING ENABLED
+        var tvec = orig.subtract(a, true);
+
+        u = tvec.dot(pvec);
+        if (u < 0 || u > det) {
+          return null;
         }
-      },
-      writable: true,
-      enumerable: true,
-      configurable: true
-    }
-  }, {
-    descSort: {
-      value: function descSort(a, b) {
-        return a.distance - b.distance;
+
+        var qvec = tvec.cross(edge1);
+
+        v = dir.dot(qvec);
+        if (v < 0 || u + v > det) {
+          return null;
+        }
+
+        t = edge2.dot(qvec);
+
+        var inv_det = 1 / det;
+        t = t * inv_det;
+        u = u * inv_det;
+        v = v * inv_det;
+
+        return new Vector3(t, u, v);
       },
       writable: true,
       enumerable: true,
       configurable: true
     },
     intersectObject: {
-      value: function intersectObject(object, recursive) {},
-      writable: true,
-      enumerable: true,
-      configurable: true
-    },
-    set: {
-      value: function set(origin, direction) {
-        this.ray.set(origin, direction);
+      value: function intersectObject(object) {
+        if (object.drawingMode === Common.drawingMode.TRIANGLES) {}
       },
       writable: true,
       enumerable: true,
@@ -1352,50 +1355,6 @@ var Matrix4 = (function (Array) {
       enumerable: true,
       configurable: true
     },
-    toInverseMat3: {
-
-      /**
-       * Returns inverse matrix3
-       *
-       * @returns {Matrix3}
-       */
-      value: function toInverseMat3() {
-        var a00 = this[0],
-            a01 = this[1],
-            a02 = this[2];
-        var a10 = this[4],
-            a11 = this[5],
-            a12 = this[6];
-        var a20 = this[8],
-            a21 = this[9],
-            a22 = this[10];
-
-        var b01 = a22 * a11 - a12 * a21;
-        var b11 = -a22 * a10 + a12 * a20;
-        var b21 = a21 * a10 - a11 * a20;
-
-        var d = a00 * b01 + a01 * b11 + a02 * b21;
-
-        var id = 1 / d;
-
-        var result = new Matrix3();
-
-        result[0] = b01 * id;
-        result[1] = (-a22 * a01 + a02 * a21) * id;
-        result[2] = (a12 * a01 - a02 * a11) * id;
-        result[3] = b11 * id;
-        result[4] = (a22 * a00 - a02 * a20) * id;
-        result[5] = (-a12 * a00 + a02 * a10) * id;
-        result[6] = b21 * id;
-        result[7] = (-a21 * a00 + a01 * a20) * id;
-        result[8] = (a11 * a00 - a01 * a10) * id;
-
-        return result;
-      },
-      writable: true,
-      enumerable: true,
-      configurable: true
-    },
     rotateX: {
 
       /**
@@ -1720,50 +1679,6 @@ var Ray = (function () {
         this.direction.copy(ray.direction);
 
         return this;
-      },
-      writable: true,
-      enumerable: true,
-      configurable: true
-    },
-    intersectTriangle: {
-      value: function intersectTriangle(vert0, vert1, vert2) {
-        var orig = this.origin,
-            dir = this.direction,
-            t,
-            u,
-            v;
-
-        // find vectors for edges
-        var edge1 = vert1.subtract(vert0, true);
-        var edge2 = vert2.subtract(vert0, true);
-
-        // calculate determinant
-        var pvec = dir.cross(edge2);
-        var det = edge1.dot(pvec);
-
-        // calculations - CULLING ENABLED
-        var tvec = orig.subtract(vert0, true);
-
-        u = tvec.dot(pvec);
-        if (u < 0 || u > det) {
-          return null;
-        }
-
-        var qvec = tvec.cross(edge1);
-
-        v = dir.dot(qvec);
-        if (v < 0 || u + v > det) {
-          return null;
-        }
-
-        t = edge2.dot(qvec);
-
-        var inv_det = 1 / det;
-        t = t * inv_det;
-        u = u * inv_det;
-        v = v * inv_det;
-
-        return new Vector3(t, u, v);
       },
       writable: true,
       enumerable: true,
@@ -2578,9 +2493,21 @@ var WebGLRenderer = (function (Renderer) {
          *
          * @type {WebGLRenderingContext}
          */
-        this.gl = this.canvas.getContext("webgl");
+        var gl;
 
-        this.gl.enable(this.gl.DEPTH_TEST);
+        if (WebGLRenderingContext) {
+          gl = this.canvas.getContext("webgl", { antialias: true, alpha: true });
+
+          if (!gl) {
+            gl = this.canvas.getContext("experimental-webgl");
+          }
+
+          gl.enable(gl.DEPTH_TEST);
+
+          this.gl = gl;
+        } else {
+          throw "WebGL is not supported.";
+        }
       },
       writable: true,
       enumerable: true,
@@ -2791,8 +2718,8 @@ var ShaderProgrammer = (function () {
     this.program = false;
     this.gl = renderer.gl;
 
-    this.initLighting();
     this.initPositionCamera();
+    this.initLighting();
     this.create();
   }
 
@@ -2917,6 +2844,8 @@ var ShaderProgrammer = (function () {
 
         fragmentProgram.precision("mediump", "float");
 
+        vertexProgram.code("mat3 nMatrix = mat3(mvMatrix);");
+
         var color = fragmentProgram.uniform("vec3", function () {
           this.value(obj.material.color.toArray());
         }, "vColor");
@@ -2925,12 +2854,6 @@ var ShaderProgrammer = (function () {
           vertexProgram.attribute("vec3", function () {
             this.value(obj.buffers.normals);
           }, "vNormal");
-
-          vertexProgram.uniform("mat3", function () {
-            var mvMatrix = obj.getMatrix(renderer.camera);
-            var nMatrix = mvMatrix.toInverseMat3().transpose();
-            this.value(nMatrix);
-          }, "nMatrix");
 
           vertexProgram.uniform("float", function () {
             this.value(obj.material.shininess);
@@ -3201,6 +3124,9 @@ var Shader = (function () {
        * @returns {Shader}
        */
       value: function code(code, params) {
+        var line = arguments[2] === undefined ? "append" : arguments[2];
+
+
         if (typeof params !== "undefined") {
           for (var i in params) {
             var variable = typeof params[i] === "object" ? params[i].name : params[i];
@@ -3208,7 +3134,11 @@ var Shader = (function () {
           }
         }
 
-        this._code += code + "\n";
+        if (line === "append") {
+          this._code += code + "\n";
+        } else if (line === "prepend") {
+          this._code = code + "\n" + this._code;
+        }
 
         return this;
       },
@@ -3384,10 +3314,11 @@ root.LiThree = {
   World: World,
   Object3D: Object3D,
   Interactive: Interactive,
+  RayCaster: RayCaster,
+    Color: Color,
   Camera: {
     Perspective: PerspectiveCamera
   },
-  Color: Color,
   Math: {
     Quaternion: Quaternion,
     Vector3: Vector3,

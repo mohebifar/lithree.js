@@ -1,56 +1,60 @@
 export default
 class RayCaster {
 
-  constructor(origin, direction, near = 0, far = Infinity) {
-    this.ray = new Ray(origin, direction);
-
-    this.near = near;
-
-    this.far = far;
-
-    this.params = {
-      Sprite: {},
-      Mesh: {},
-      PointCloud: {threshold: 1},
-      LOD: {},
-      Line: {}
-    };
-
-    this.precision = 0.0001;
-    this.linePrecision = 1;
+  /**
+   * @constructor
+   * @param {Ray} ray
+   */
+  constructor(ray) {
+    this.ray = ray;
   }
 
-  descSort(a, b) {
-    return a.distance - b.distance;
-  }
+  intersectTriangle(a, b, c) {
+    var
+      ray = this.ray,
+      orig = ray.origin,
+      dir = ray.direction,
+      t,
+      u,
+      v;
 
-  intersectObject(object, rayCaster, intersects, recursive) {
-    object.raycast(rayCaster, intersects);
+    // find vectors for edges
+    var edge1 = b.subtract(a, true);
+    var edge2 = c.subtract(a, true);
 
-  }
+    // calculate determinant
+    var pvec = dir.cross(edge2);
+    var det = edge1.dot(pvec);
 
-  set(origin, direction) {
-    this.ray.set(origin, direction);
-  }
+    // calculations - CULLING ENABLED
+    var tvec = orig.subtract(a, true);
 
-  static createFromCamera(coords, camera) {
-
-    if (camera instanceof PerspectiveCamera) {
-      var origin = new Vector3();
-      origin.copy(camera.position);
-
-      var direction = new Vector3();
-      direction.set(coords.x, coords.y, 0.5).unproject(camera).sub(camera.position).normalize();
-
-      return new RayCaster(origin, direction);
-    } else {
-      throw 'Given camera cannot be ray casted.';
+    u = tvec.dot(pvec);
+    if (u < 0 || u > det) {
+      return null;
     }
 
+    var qvec = tvec.cross(edge1);
+
+    v = dir.dot(qvec);
+    if (v < 0 || (u + v) > det) {
+      return null;
+    }
+
+    t = edge2.dot(qvec);
+
+    var inv_det = 1 / det;
+    t = t * inv_det;
+    u = u * inv_det;
+    v = v * inv_det;
+
+    return new Vector3(t, u, v);
   }
 
-  intersectObject(object, recursive) {
+  intersectObject(object) {
+    if (object.drawingMode === Common.drawingMode.TRIANGLES) {
 
+    }
   }
 
 }

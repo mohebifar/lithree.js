@@ -5,10 +5,11 @@ root.LiThree = {
   World: World,
   Object3D: Object3D,
   Interactive: Interactive,
+  RayCaster: RayCaster,
+    Color: Color,
   Camera: {
     Perspective: PerspectiveCamera
   },
-  Color: Color,
   Math: {
     Quaternion: Quaternion,
     Vector3: Vector3,

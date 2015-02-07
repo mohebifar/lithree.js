@@ -47,10 +47,21 @@ class WebGLRenderer extends Renderer {
      *
      * @type {WebGLRenderingContext}
      */
-    this.gl = this.canvas.getContext('webgl');
+    var gl;
 
-    this.gl.enable(this.gl.DEPTH_TEST);
+    if(WebGLRenderingContext) {
+      gl = this.canvas.getContext('webgl', {antialias: true, alpha: true});
 
+      if (!gl) {
+        gl = this.canvas.getContext('experimental-webgl');
+      }
+
+      gl.enable(gl.DEPTH_TEST);
+
+      this.gl = gl;
+    } else {
+      throw 'WebGL is not supported.';
+    }
   }
 
   setSize(width, height) {
@@ -118,7 +129,7 @@ class WebGLRenderer extends Renderer {
 
       let object = this.world.children[i];
 
-      if(! object.display) {
+      if (!object.display) {
         continue;
       }
 

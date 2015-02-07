@@ -26,8 +26,8 @@ class ShaderProgrammer {
     this.program = false;
     this.gl = renderer.gl;
 
-    this.initLighting();
     this.initPositionCamera();
+    this.initLighting();
     this.create();
 
   }
@@ -143,6 +143,8 @@ class ShaderProgrammer {
 
     fragmentProgram.precision('mediump', 'float');
 
+    vertexProgram.code(`mat3 nMatrix = mat3(mvMatrix);`);
+
     var color = fragmentProgram.uniform('vec3', function () {
       this.value(obj.material.color.toArray());
     }, 'vColor');
@@ -152,12 +154,6 @@ class ShaderProgrammer {
       vertexProgram.attribute('vec3', function () {
         this.value(obj.buffers.normals);
       }, 'vNormal');
-
-      vertexProgram.uniform('mat3', function () {
-        var mvMatrix = obj.getMatrix(renderer.camera);
-        var nMatrix = mvMatrix.toInverseMat3().transpose();
-        this.value(nMatrix);
-      }, 'nMatrix');
 
       vertexProgram.uniform('float', function () {
         this.value(obj.material.shininess);

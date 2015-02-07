@@ -284,39 +284,6 @@ class Matrix4 extends Array {
   }
 
   /**
-   * Returns inverse matrix3
-   *
-   * @returns {Matrix3}
-   */
-  toInverseMat3() {
-    var a00 = this[0], a01 = this[1], a02 = this[2];
-    var a10 = this[4], a11 = this[5], a12 = this[6];
-    var a20 = this[8], a21 = this[9], a22 = this[10];
-
-    var b01 = a22 * a11 - a12 * a21;
-    var b11 = -a22 * a10 + a12 * a20;
-    var b21 = a21 * a10 - a11 * a20;
-
-    var d = a00 * b01 + a01 * b11 + a02 * b21;
-
-    var id = 1 / d;
-
-    var result = new Matrix3();
-
-    result[0] = b01 * id;
-    result[1] = (-a22 * a01 + a02 * a21) * id;
-    result[2] = (a12 * a01 - a02 * a11) * id;
-    result[3] = b11 * id;
-    result[4] = (a22 * a00 - a02 * a20) * id;
-    result[5] = (-a12 * a00 + a02 * a10) * id;
-    result[6] = b21 * id;
-    result[7] = (-a21 * a00 + a01 * a20) * id;
-    result[8] = (a11 * a00 - a01 * a10) * id;
-
-    return result;
-  }
-
-  /**
    * Rotates by given angle and giving X axis
    *
    * @param {Number} rad The angle by radian

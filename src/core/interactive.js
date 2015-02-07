@@ -114,6 +114,10 @@ class Interactive extends Emitter {
         _this.emit('wheel', e.detail * -40, e);
       }
     });
+
+    dom.addEventListener('mouseleave', function () {
+      _this.isDragging = false;
+    });
   }
 
 }
