@@ -13,10 +13,14 @@ class Interactive extends Emitter {
     this._attachListeners();
   }
 
-  updatePosition(x, y) {
-    x = x - this.renderer.canvas.offsetLeft;
-    y = y - this.renderer.canvas.offsetTop;
+  _getPosition(x, y) {
+    return [x - this.renderer.canvas.offsetLeft, y - this.renderer.canvas.offsetTop];
+  }
 
+  updatePosition(x, y) {
+    var [x, y] = this._getPosition(x, y);
+
+    console.log(x, y);
     this.delta.x = this.lastPosition.x - x;
     this.delta.y = this.lastPosition.y - y;
 
@@ -117,6 +121,28 @@ class Interactive extends Emitter {
 
     dom.addEventListener('mouseleave', function () {
       _this.isDragging = false;
+    });
+
+    dom.addEventListener('touchstart', function (e) {
+      _this.updatePosition(e.touches[0].clientX, e.touches[0].clientY);
+      _this.clickFlag = true;
+
+      _this.emit('touchstart');
+    });
+
+    dom.addEventListener('touchmove', function (e) {
+      _this.updatePosition(e.touches[0].clientX, e.touches[0].clientY);
+      _this.clickFlag = false;
+
+      _this.emit('touchmove', _this.lastPosition, _this.delta, unproject, e);
+    });
+
+    dom.addEventListener('touchend', function (e) {
+      if (_this.hasEvent('tap') && _this.clickFlag === true) {
+        _this.emit('tap', _this.lastPosition, unproject, e);
+      } else if (_this.hasEvent('end')) {
+        _this.emit('touchend', _this.lastPosition, unproject, e);
+      }
     });
   }
 

@@ -41,20 +41,13 @@ class WebGLRenderer extends Renderer {
    * @method initGl
    */
   initGl() {
-
-    /**
-     * The WebGl Rendering context
-     *
-     * @type {WebGLRenderingContext}
-     */
-    var gl;
-
     if(WebGLRenderingContext) {
-      gl = this.canvas.getContext('webgl', {antialias: true, alpha: true});
-
-      if (!gl) {
-        gl = this.canvas.getContext('experimental-webgl');
-      }
+      /**
+       * The WebGl Rendering context
+       *
+       * @type {WebGLRenderingContext}
+       */
+      var gl = this.canvas.getContext("webgl") || this.canvas.getContext("experimental-webgl");
 
       gl.enable(gl.DEPTH_TEST);
 

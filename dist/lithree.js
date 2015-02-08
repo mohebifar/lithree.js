@@ -1,6 +1,22 @@
 (function(root) {
 "use strict";
 
+var _slicedToArray = function (arr, i) {
+  if (Array.isArray(arr)) {
+    return arr;
+  } else {
+    var _arr = [];
+
+    for (var _iterator = arr[Symbol.iterator](), _step; !(_step = _iterator.next()).done;) {
+      _arr.push(_step.value);
+
+      if (i && _arr.length === i) break;
+    }
+
+    return _arr;
+  }
+};
+
 var _get = function get(object, property, receiver) {
   var desc = Object.getOwnPropertyDescriptor(object, property);
 
@@ -432,11 +448,25 @@ var Interactive = (function (Emitter) {
   _inherits(Interactive, Emitter);
 
   _prototypeProperties(Interactive, null, {
+    _getPosition: {
+      value: function GetPosition(x, y) {
+        return [x - this.renderer.canvas.offsetLeft, y - this.renderer.canvas.offsetTop];
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
     updatePosition: {
       value: function updatePosition(x, y) {
-        x = x - this.renderer.canvas.offsetLeft;
-        y = y - this.renderer.canvas.offsetTop;
+        var _getPosition = this._getPosition(x, y);
 
+        var _getPosition2 = _slicedToArray(_getPosition, 2);
+
+        var x = _getPosition2[0];
+        var y = _getPosition2[1];
+
+
+        console.log(x, y);
         this.delta.x = this.lastPosition.x - x;
         this.delta.y = this.lastPosition.y - y;
 
@@ -540,6 +570,28 @@ var Interactive = (function (Emitter) {
 
         dom.addEventListener("mouseleave", function () {
           _this.isDragging = false;
+        });
+
+        dom.addEventListener("touchstart", function (e) {
+          _this.updatePosition(e.touches[0].clientX, e.touches[0].clientY);
+          _this.clickFlag = true;
+
+          _this.emit("touchstart");
+        });
+
+        dom.addEventListener("touchmove", function (e) {
+          _this.updatePosition(e.touches[0].clientX, e.touches[0].clientY);
+          _this.clickFlag = false;
+
+          _this.emit("touchmove", _this.lastPosition, _this.delta, unproject, e);
+        });
+
+        dom.addEventListener("touchend", function (e) {
+          if (_this.hasEvent("tap") && _this.clickFlag === true) {
+            _this.emit("tap", _this.lastPosition, unproject, e);
+          } else if (_this.hasEvent("end")) {
+            _this.emit("touchend", _this.lastPosition, unproject, e);
+          }
         });
       },
       writable: true,
@@ -2488,19 +2540,13 @@ var WebGLRenderer = (function (Renderer) {
        * @method initGl
        */
       value: function initGl() {
-        /**
-         * The WebGl Rendering context
-         *
-         * @type {WebGLRenderingContext}
-         */
-        var gl;
-
         if (WebGLRenderingContext) {
-          gl = this.canvas.getContext("webgl", { antialias: true, alpha: true });
-
-          if (!gl) {
-            gl = this.canvas.getContext("experimental-webgl");
-          }
+          /**
+           * The WebGl Rendering context
+           *
+           * @type {WebGLRenderingContext}
+           */
+          var gl = this.canvas.getContext("webgl") || this.canvas.getContext("experimental-webgl");
 
           gl.enable(gl.DEPTH_TEST);
 
