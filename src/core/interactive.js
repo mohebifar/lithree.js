@@ -20,7 +20,6 @@ class Interactive extends Emitter {
   updatePosition(x, y) {
     var [x, y] = this._getPosition(x, y);
 
-    console.log(x, y);
     this.delta.x = this.lastPosition.x - x;
     this.delta.y = this.lastPosition.y - y;
 

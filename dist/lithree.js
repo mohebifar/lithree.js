@@ -466,7 +466,6 @@ var Interactive = (function (Emitter) {
         var y = _getPosition2[1];
 
 
-        console.log(x, y);
         this.delta.x = this.lastPosition.x - x;
         this.delta.y = this.lastPosition.y - y;
 
