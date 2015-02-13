@@ -8,6 +8,8 @@ Well, LiThree is created for lightweight 3D projects. For example if you want to
 
 # Usage
 
+***You can check the demo a simple demo [here](http://codepen.io/mohebifar/pen/QwMWgO).***
+
 Make a world which will contain all your elements.
 
 ```js
