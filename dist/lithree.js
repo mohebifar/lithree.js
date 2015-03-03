@@ -2611,7 +2611,9 @@ var WebGLRenderer = (function (Renderer) {
           object.buffers.vertexIndex = this.gl.createBuffer();
 
           // Create shader programmer
-          object.shader = new ShaderProgrammer(this, object);
+          if (typeof object.shader === "undefined") {
+            object.shader = new ShaderProgrammer(this, object);
+          }
 
           // Set flag
           object.initiated = true;
@@ -2643,7 +2645,7 @@ var WebGLRenderer = (function (Renderer) {
           this.initShape(object);
 
           object.shader.use();
-          object.shader.assignValues();
+          object.shader.assignValues(object);
 
           if (object.darwingFunction === Common.drawingFunctions.ELEMENTS) {
             this.gl.drawElements(object.drawingMode, buffers.vertexIndex.numItems, this.gl.UNSIGNED_SHORT, 0);
@@ -2710,7 +2712,7 @@ var Attribute = (function () {
        */
       value: function update() {
         if (typeof this.onupdate === "function") {
-          this.onupdate.apply(this);
+          this.onupdate.apply(this, arguments);
         }
       },
       writable: true,
@@ -2776,9 +2778,8 @@ var ShaderProgrammer = (function () {
        *
        * @method assignValues
        */
-      value: function assignValues() {
+      value: function assignValues(object) {
         var i,
-            object = this.object,
             vertexProgram = this.vertexProgram,
             fragmentProgram = this.fragmentProgram;
 
@@ -2814,13 +2815,13 @@ var ShaderProgrammer = (function () {
 
         for (i in vertexProgram._variables) {
           if (vertexProgram._variables[i].update) {
-            vertexProgram._variables[i].update();
+            vertexProgram._variables[i].update(object);
           }
         }
 
         for (i in fragmentProgram._variables) {
           if (fragmentProgram._variables[i].update) {
-            fragmentProgram._variables[i].update();
+            fragmentProgram._variables[i].update(object);
           }
         }
       },
@@ -2836,18 +2837,15 @@ var ShaderProgrammer = (function () {
        * @method initPositionCamera
        */
       value: function initPositionCamera() {
-        var obj = this.object,
-            gl = this.gl,
-            buffers = obj.buffers,
-            vertexProgram = this.vertexProgram,
+        var vertexProgram = this.vertexProgram,
             renderer = this.renderer;
 
-        var position = vertexProgram.attribute("vec3", function () {
-          this.value(buffers.vertices);
+        var position = vertexProgram.attribute("vec3", function (obj) {
+          this.value(obj.buffers.vertices);
         }, "vPosition");
 
-        var normal = vertexProgram.attribute("vec3", function () {
-          this.value(buffers.normals);
+        var normal = vertexProgram.attribute("vec3", function (obj) {
+          this.value(obj.buffers.normals);
         }, "vNormal");
 
         var pMatrix = vertexProgram.uniform("mat4", function () {
@@ -2858,7 +2856,7 @@ var ShaderProgrammer = (function () {
           this.value(renderer.camera.viewMatrix);
         }, "vMatrix");
 
-        var mMatrix = vertexProgram.uniform("mat4", function () {
+        var mMatrix = vertexProgram.uniform("mat4", function (obj) {
           this.value(obj.matrix);
         }, "mMatrix");
 
@@ -2881,8 +2879,7 @@ var ShaderProgrammer = (function () {
        * @method initLighting
        */
       value: function initLighting() {
-        var obj = this.object,
-            vertexProgram = this.vertexProgram,
+        var vertexProgram = this.vertexProgram,
             fragmentProgram = this.fragmentProgram,
             renderer = this.renderer,
             world = renderer.world;
@@ -2891,24 +2888,24 @@ var ShaderProgrammer = (function () {
 
         vertexProgram.code("mat3 nMatrix = mat3(mvMatrix);");
 
-        var color = fragmentProgram.uniform("vec3", function () {
+        var color = fragmentProgram.uniform("vec3", function (obj) {
           this.value(obj.material.color.toArray());
         }, "vColor");
 
         if (world.lights.length > 0) {
-          vertexProgram.attribute("vec3", function () {
+          vertexProgram.attribute("vec3", function (obj) {
             this.value(obj.buffers.normals);
           }, "vNormal");
 
-          vertexProgram.uniform("float", function () {
+          vertexProgram.uniform("float", function (obj) {
             this.value(obj.material.shininess);
           }, "fShininess");
 
-          vertexProgram.uniform("bool", function () {
+          vertexProgram.uniform("bool", function (obj) {
             this.value(obj.material.specular);
           }, "bSpecular");
 
-          vertexProgram.uniform("bool", function () {
+          vertexProgram.uniform("bool", function (obj) {
             this.value(obj.material.diffuse);
           }, "bDiffuse");
 
@@ -3298,7 +3295,7 @@ var Uniform = (function () {
        */
       value: function update() {
         if (typeof this.onupdate === "function") {
-          this.onupdate.apply(this);
+          this.onupdate.apply(this, arguments);
         }
       },
       writable: true,

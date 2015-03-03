@@ -101,7 +101,9 @@ class WebGLRenderer extends Renderer {
       object.buffers.vertexIndex = this.gl.createBuffer();
 
       // Create shader programmer
-      object.shader = new ShaderProgrammer(this, object);
+      if(typeof object.shader === 'undefined') {
+        object.shader = new ShaderProgrammer(this, object);
+      }
 
       // Set flag
       object.initiated = true;
@@ -131,7 +133,7 @@ class WebGLRenderer extends Renderer {
       this.initShape(object);
 
       object.shader.use();
-      object.shader.assignValues();
+      object.shader.assignValues(object);
 
       if (object.darwingFunction === Common.drawingFunctions.ELEMENTS) {
         this.gl.drawElements(object.drawingMode, buffers.vertexIndex.numItems, this.gl.UNSIGNED_SHORT, 0);

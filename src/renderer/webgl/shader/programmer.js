@@ -15,7 +15,7 @@ class ShaderProgrammer {
    * @param renderer
    * @param object
    */
-  constructor(renderer, object) {
+    constructor(renderer, object) {
 
     this.object = object;
     this.renderer = renderer;
@@ -37,9 +37,8 @@ class ShaderProgrammer {
    *
    * @method assignValues
    */
-  assignValues() {
+    assignValues(object) {
     var i,
-      object = this.object,
       vertexProgram = this.vertexProgram,
       fragmentProgram = this.fragmentProgram;
 
@@ -75,13 +74,13 @@ class ShaderProgrammer {
 
     for (i in vertexProgram._variables) {
       if (vertexProgram._variables[i].update) {
-        vertexProgram._variables[i].update();
+        vertexProgram._variables[i].update(object);
       }
     }
 
     for (i in fragmentProgram._variables) {
       if (fragmentProgram._variables[i].update) {
-        fragmentProgram._variables[i].update();
+        fragmentProgram._variables[i].update(object);
       }
     }
   }
@@ -91,20 +90,17 @@ class ShaderProgrammer {
    *
    * @method initPositionCamera
    */
-  initPositionCamera() {
+    initPositionCamera() {
 
-    var obj = this.object,
-      gl = this.gl,
-      buffers = obj.buffers,
-      vertexProgram = this.vertexProgram,
+    var vertexProgram = this.vertexProgram,
       renderer = this.renderer;
 
-    var position = vertexProgram.attribute('vec3', function () {
-      this.value(buffers.vertices);
+    var position = vertexProgram.attribute('vec3', function (obj) {
+      this.value(obj.buffers.vertices);
     }, 'vPosition');
 
-    var normal = vertexProgram.attribute('vec3', function () {
-      this.value(buffers.normals);
+    var normal = vertexProgram.attribute('vec3', function (obj) {
+      this.value(obj.buffers.normals);
     }, 'vNormal');
 
     var pMatrix = vertexProgram.uniform('mat4', function () {
@@ -115,7 +111,7 @@ class ShaderProgrammer {
       this.value(renderer.camera.viewMatrix);
     }, 'vMatrix');
 
-    var mMatrix = vertexProgram.uniform('mat4', function () {
+    var mMatrix = vertexProgram.uniform('mat4', function (obj) {
       this.value(obj.matrix);
     }, 'mMatrix');
 
@@ -133,10 +129,9 @@ class ShaderProgrammer {
    *
    * @method initLighting
    */
-  initLighting() {
+    initLighting() {
 
-    var obj = this.object,
-      vertexProgram = this.vertexProgram,
+    var vertexProgram = this.vertexProgram,
       fragmentProgram = this.fragmentProgram,
       renderer = this.renderer,
       world = renderer.world;
@@ -145,25 +140,25 @@ class ShaderProgrammer {
 
     vertexProgram.code(`mat3 nMatrix = mat3(mvMatrix);`);
 
-    var color = fragmentProgram.uniform('vec3', function () {
+    var color = fragmentProgram.uniform('vec3', function (obj) {
       this.value(obj.material.color.toArray());
     }, 'vColor');
 
     if (world.lights.length > 0) {
 
-      vertexProgram.attribute('vec3', function () {
+      vertexProgram.attribute('vec3', function (obj) {
         this.value(obj.buffers.normals);
       }, 'vNormal');
 
-      vertexProgram.uniform('float', function () {
+      vertexProgram.uniform('float', function (obj) {
         this.value(obj.material.shininess);
       }, 'fShininess');
 
-      vertexProgram.uniform('bool', function () {
+      vertexProgram.uniform('bool', function (obj) {
         this.value(obj.material.specular);
       }, 'bSpecular');
 
-      vertexProgram.uniform('bool', function () {
+      vertexProgram.uniform('bool', function (obj) {
         this.value(obj.material.diffuse);
       }, 'bDiffuse');
 
@@ -197,7 +192,7 @@ class ShaderProgrammer {
    *
    * @method use
    */
-  use() {
+    use() {
 
     this.gl.useProgram(this.program);
 
@@ -211,7 +206,7 @@ class ShaderProgrammer {
    * @param {number} shaderType The type of shader, VERTEX_SHADER or FRAGMENT_SHADER.
    * @return {WebGLShader} The shader.
    */
-  compile(source, shaderType) {
+    compile(source, shaderType) {
 
     var gl = this.gl;
     // Create the shader object
@@ -240,7 +235,7 @@ class ShaderProgrammer {
    *
    * @returns {WebGLProgram}
    */
-  create() {
+    create() {
 
     var gl = this.gl;
     var program = gl.createProgram();

@@ -41,7 +41,7 @@ class Attribute {
    */
   update() {
     if(typeof this.onupdate === 'function') {
-      this.onupdate.apply(this);
+      this.onupdate.apply(this, arguments);
     }
   }
 
