@@ -8,18 +8,19 @@ class Uniform {
   /**
    * Constructor of Unifrom
    *
-   * @method constructor
-   * @param type
-   * @param name
-   * @param programmer
+   * @constructor
+   * @param {String} type
+   * @param {String} name
+   * @param {Shader} shader
    */
-  constructor(type, name, programmer) {
+  constructor(type, name, shader) {
     this.type = type;
     this.name = name;
 
     this.onupdate = null;
 
-    this._porgrammer = programmer;
+    this.shader = shader;
+    this._porgrammer = shader._programmer;
   }
 
   /**

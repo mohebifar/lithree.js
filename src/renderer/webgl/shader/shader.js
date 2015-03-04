@@ -14,7 +14,7 @@ class Shader {
   /**
    * Constructor of Shader
    *
-   * @method constructor
+   * @constructor
    * @param type
    * @param programmer
    */
@@ -48,7 +48,7 @@ class Shader {
    * @returns {Uniform}
    */
   uniform(type, callback = null, name = 'tmp_' + tmpId++) {
-    var uniform = new Uniform(type, name, this._programmer);
+    var uniform = new Uniform(type, name, this);
     uniform.onupdate = callback;
     this._variables[name] = uniform;
     return uniform;
@@ -64,7 +64,7 @@ class Shader {
    * @returns {Attribute}
    */
   attribute(type, callback = null, name = 'tmp_' + tmpId++) {
-    var attribute = new Attribute(type, name, this._programmer);
+    var attribute = new Attribute(type, name, this);
     attribute.onupdate = callback;
     this._variables[name] = attribute;
     return attribute;
@@ -141,7 +141,7 @@ class Shader {
   }
 
   clear() {
-    this._code = ''
+    this._code = '';
   }
 
   /**

@@ -15,9 +15,8 @@ class ShaderProgrammer {
    * @param renderer
    * @param object
    */
-    constructor(renderer, object) {
+    constructor(renderer) {
 
-    this.object = object;
     this.renderer = renderer;
 
     this.vertexProgram = new Shader('vertex', this);
@@ -28,7 +27,7 @@ class ShaderProgrammer {
 
     this.initPositionCamera();
     this.initLighting();
-    this.create();
+    this._isCreated = false;
 
   }
 
@@ -99,10 +98,6 @@ class ShaderProgrammer {
       this.value(obj.buffers.vertices);
     }, 'vPosition');
 
-    var normal = vertexProgram.attribute('vec3', function (obj) {
-      this.value(obj.buffers.normals);
-    }, 'vNormal');
-
     var pMatrix = vertexProgram.uniform('mat4', function () {
       this.value(renderer.camera.projectionMatrix);
     }, 'pMatrix');
@@ -144,7 +139,7 @@ class ShaderProgrammer {
       this.value(obj.material.color.toArray());
     }, 'vColor');
 
-    if (world.lights.length > 0) {
+    //if (world.lights.length > 0) {
 
       vertexProgram.attribute('vec3', function (obj) {
         this.value(obj.buffers.normals);
@@ -172,18 +167,18 @@ class ShaderProgrammer {
         world.lights[i].program(vertexProgram, fragmentProgram);
       }
 
-      fragmentProgram.code('gl_FragColor = vec4(%lw + %c, 1.0);', {
+      fragmentProgram.code('vec4 outColor = vec4(%lw + %c, 1.0);\ngl_FragColor = outColor;', {
         c: color,
         lw: fragmentProgram.varying('vec3', 'lightWeight')
       });
 
-    } else {
+/*    } else {
 
       fragmentProgram.code('gl_FragColor = vec4(%c, 1.0);', {
         c: color
       });
 
-    }
+    }*/
 
   }
 
@@ -236,7 +231,6 @@ class ShaderProgrammer {
    * @returns {WebGLProgram}
    */
     create() {
-
     var gl = this.gl;
     var program = gl.createProgram();
 
@@ -256,6 +250,9 @@ class ShaderProgrammer {
 
     this.vertexProgram.init();
     this.fragmentProgram.init();
+
+    this._isCreated = true;
+
     return program;
 
   }

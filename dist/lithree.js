@@ -2612,7 +2612,7 @@ var WebGLRenderer = (function (Renderer) {
 
           // Create shader programmer
           if (typeof object.shader === "undefined") {
-            object.shader = new ShaderProgrammer(this, object);
+            object.shader = this.createProgrammer();
           }
 
           // Set flag
@@ -2644,6 +2644,9 @@ var WebGLRenderer = (function (Renderer) {
 
           this.initShape(object);
 
+          if (!object.shader._isCreated) {
+            object.shader.create();
+          }
           object.shader.use();
           object.shader.assignValues(object);
 
@@ -2653,6 +2656,14 @@ var WebGLRenderer = (function (Renderer) {
             this.gl.drawArrays(object.drawingMode, 0, buffers.vertices.numItems);
           }
         }
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    createProgrammer: {
+      value: function createProgrammer() {
+        return new ShaderProgrammer(this);
       },
       writable: true,
       enumerable: true,
@@ -2672,18 +2683,19 @@ var Attribute = (function () {
   /**
    * Constructor of Attribute
    *
-   * @method constructor
+   * @constructor
    * @param {String} type
    * @param {String} name
-   * @param {ShaderProgrammer} programmer
+   * @param {Shader} shader
    */
-  function Attribute(type, name, programmer) {
+  function Attribute(type, name, shader) {
     this.type = type;
     this.name = name;
 
     this.onupdate = null;
 
-    this._porgrammer = programmer;
+    this.shader = shader;
+    this._porgrammer = shader._programmer;
   }
 
   _prototypeProperties(Attribute, null, {
@@ -2697,6 +2709,7 @@ var Attribute = (function () {
       value: function create() {
         var gl = this._porgrammer.renderer.gl;
         this.location = gl.getAttribLocation(this._porgrammer.program, this.name);
+
         gl.enableVertexAttribArray(this.location);
       },
       writable: true,
@@ -2755,8 +2768,7 @@ var ShaderProgrammer = (function () {
    * @param renderer
    * @param object
    */
-  function ShaderProgrammer(renderer, object) {
-    this.object = object;
+  function ShaderProgrammer(renderer) {
     this.renderer = renderer;
 
     this.vertexProgram = new Shader("vertex", this);
@@ -2767,7 +2779,7 @@ var ShaderProgrammer = (function () {
 
     this.initPositionCamera();
     this.initLighting();
-    this.create();
+    this._isCreated = false;
   }
 
   _prototypeProperties(ShaderProgrammer, null, {
@@ -2844,10 +2856,6 @@ var ShaderProgrammer = (function () {
           this.value(obj.buffers.vertices);
         }, "vPosition");
 
-        var normal = vertexProgram.attribute("vec3", function (obj) {
-          this.value(obj.buffers.normals);
-        }, "vNormal");
-
         var pMatrix = vertexProgram.uniform("mat4", function () {
           this.value(renderer.camera.projectionMatrix);
         }, "pMatrix");
@@ -2892,42 +2900,46 @@ var ShaderProgrammer = (function () {
           this.value(obj.material.color.toArray());
         }, "vColor");
 
-        if (world.lights.length > 0) {
-          vertexProgram.attribute("vec3", function (obj) {
-            this.value(obj.buffers.normals);
-          }, "vNormal");
+        //if (world.lights.length > 0) {
 
-          vertexProgram.uniform("float", function (obj) {
-            this.value(obj.material.shininess);
-          }, "fShininess");
+        vertexProgram.attribute("vec3", function (obj) {
+          this.value(obj.buffers.normals);
+        }, "vNormal");
 
-          vertexProgram.uniform("bool", function (obj) {
-            this.value(obj.material.specular);
-          }, "bSpecular");
+        vertexProgram.uniform("float", function (obj) {
+          this.value(obj.material.shininess);
+        }, "fShininess");
 
-          vertexProgram.uniform("bool", function (obj) {
-            this.value(obj.material.diffuse);
-          }, "bDiffuse");
+        vertexProgram.uniform("bool", function (obj) {
+          this.value(obj.material.specular);
+        }, "bSpecular");
 
-          vertexProgram.code("vec3 transformedNormal = nMatrix * vNormal;");
-          vertexProgram.code("vec3 normal = normalize(transformedNormal);");
-          vertexProgram.code("%lw = vec3(0.0, 0.0, 0.0);", {
-            lw: vertexProgram.varying("vec3", "lightWeight")
-          });
+        vertexProgram.uniform("bool", function (obj) {
+          this.value(obj.material.diffuse);
+        }, "bDiffuse");
 
-          for (var i in world.lights) {
-            world.lights[i].program(vertexProgram, fragmentProgram);
-          }
+        vertexProgram.code("vec3 transformedNormal = nMatrix * vNormal;");
+        vertexProgram.code("vec3 normal = normalize(transformedNormal);");
+        vertexProgram.code("%lw = vec3(0.0, 0.0, 0.0);", {
+          lw: vertexProgram.varying("vec3", "lightWeight")
+        });
 
-          fragmentProgram.code("gl_FragColor = vec4(%lw + %c, 1.0);", {
-            c: color,
-            lw: fragmentProgram.varying("vec3", "lightWeight")
-          });
-        } else {
-          fragmentProgram.code("gl_FragColor = vec4(%c, 1.0);", {
-            c: color
-          });
+        for (var i in world.lights) {
+          world.lights[i].program(vertexProgram, fragmentProgram);
         }
+
+        fragmentProgram.code("vec4 outColor = vec4(%lw + %c, 1.0);\ngl_FragColor = outColor;", {
+          c: color,
+          lw: fragmentProgram.varying("vec3", "lightWeight")
+        });
+
+        /*    } else {
+        
+              fragmentProgram.code('gl_FragColor = vec4(%c, 1.0);', {
+                c: color
+              });
+        
+            }*/
       },
       writable: true,
       enumerable: true,
@@ -3009,6 +3021,9 @@ var ShaderProgrammer = (function () {
 
         this.vertexProgram.init();
         this.fragmentProgram.init();
+
+        this._isCreated = true;
+
         return program;
       },
       writable: true,
@@ -3031,7 +3046,7 @@ var Shader = (function () {
   /**
    * Constructor of Shader
    *
-   * @method constructor
+   * @constructor
    * @param type
    * @param programmer
    */
@@ -3077,7 +3092,7 @@ var Shader = (function () {
         var callback = arguments[1] === undefined ? null : arguments[1];
         var name = arguments[2] === undefined ? "tmp_" + tmpId++ : arguments[2];
         return (function () {
-          var uniform = new Uniform(type, name, _this2._programmer);
+          var uniform = new Uniform(type, name, _this2);
           uniform.onupdate = callback;
           _this2._variables[name] = uniform;
           return uniform;
@@ -3103,7 +3118,7 @@ var Shader = (function () {
         var callback = arguments[1] === undefined ? null : arguments[1];
         var name = arguments[2] === undefined ? "tmp_" + tmpId++ : arguments[2];
         return (function () {
-          var attribute = new Attribute(type, name, _this3._programmer);
+          var attribute = new Attribute(type, name, _this3);
           attribute.onupdate = callback;
           _this3._variables[name] = attribute;
           return attribute;
@@ -3257,18 +3272,19 @@ var Uniform = (function () {
   /**
    * Constructor of Unifrom
    *
-   * @method constructor
-   * @param type
-   * @param name
-   * @param programmer
+   * @constructor
+   * @param {String} type
+   * @param {String} name
+   * @param {Shader} shader
    */
-  function Uniform(type, name, programmer) {
+  function Uniform(type, name, shader) {
     this.type = type;
     this.name = name;
 
     this.onupdate = null;
 
-    this._porgrammer = programmer;
+    this.shader = shader;
+    this._porgrammer = shader._programmer;
   }
 
   _prototypeProperties(Uniform, null, {

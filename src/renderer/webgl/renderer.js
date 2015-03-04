@@ -18,7 +18,7 @@ class WebGLRenderer extends Renderer {
    * @param {Number} height
    * @param {World} world
    */
-  constructor(width, height, world, color = null) {
+    constructor(width, height, world, color = null) {
 
     this.world = world;
     this.camera = new PerspectiveCamera();
@@ -40,8 +40,8 @@ class WebGLRenderer extends Renderer {
    *
    * @method initGl
    */
-  initGl() {
-    if(WebGLRenderingContext) {
+    initGl() {
+    if (WebGLRenderingContext) {
       /**
        * The WebGl Rendering context
        *
@@ -81,7 +81,7 @@ class WebGLRenderer extends Renderer {
    *
    * @method initShapes
    */
-  initShapes() {
+    initShapes() {
 
     for (var i = this.world.children.length; i--;) {
 
@@ -101,8 +101,8 @@ class WebGLRenderer extends Renderer {
       object.buffers.vertexIndex = this.gl.createBuffer();
 
       // Create shader programmer
-      if(typeof object.shader === 'undefined') {
-        object.shader = new ShaderProgrammer(this, object);
+      if (typeof object.shader === 'undefined') {
+        object.shader = this.createProgrammer();
       }
 
       // Set flag
@@ -116,7 +116,7 @@ class WebGLRenderer extends Renderer {
    *
    * @method draw
    */
-  draw() {
+    draw() {
 
     this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 
@@ -132,6 +132,9 @@ class WebGLRenderer extends Renderer {
 
       this.initShape(object);
 
+      if(!object.shader._isCreated) {
+        object.shader.create();
+      }
       object.shader.use();
       object.shader.assignValues(object);
 
@@ -143,6 +146,10 @@ class WebGLRenderer extends Renderer {
 
     }
 
+  }
+
+  createProgrammer() {
+    return new ShaderProgrammer(this);
   }
 
 }

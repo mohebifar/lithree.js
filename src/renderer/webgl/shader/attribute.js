@@ -9,18 +9,19 @@ class Attribute {
   /**
    * Constructor of Attribute
    *
-   * @method constructor
+   * @constructor
    * @param {String} type
    * @param {String} name
-   * @param {ShaderProgrammer} programmer
+   * @param {Shader} shader
    */
-  constructor(type, name, programmer) {
+  constructor(type, name, shader) {
     this.type = type;
     this.name = name;
 
     this.onupdate = null;
 
-    this._porgrammer = programmer;
+    this.shader = shader;
+    this._porgrammer = shader._programmer;
   }
 
   /**
@@ -31,6 +32,7 @@ class Attribute {
   create() {
     var gl = this._porgrammer.renderer.gl;
     this.location = gl.getAttribLocation(this._porgrammer.program, this.name);
+
     gl.enableVertexAttribArray(this.location);
   }
 
