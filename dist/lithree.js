@@ -2900,8 +2900,6 @@ var ShaderProgrammer = (function () {
           this.value(obj.material.color.toArray());
         }, "vColor");
 
-        //if (world.lights.length > 0) {
-
         vertexProgram.attribute("vec3", function (obj) {
           this.value(obj.buffers.normals);
         }, "vNormal");
@@ -2933,13 +2931,15 @@ var ShaderProgrammer = (function () {
           lw: fragmentProgram.varying("vec3", "lightWeight")
         });
 
-        /*    } else {
-        
-              fragmentProgram.code('gl_FragColor = vec4(%c, 1.0);', {
-                c: color
-              });
-        
-            }*/
+
+        /*
+         if (world.lights.length > 0) {
+           } else {
+           fragmentProgram.code('gl_FragColor = vec4(%c, 1.0);', {
+         c: color
+         });
+           }
+         */
       },
       writable: true,
       enumerable: true,

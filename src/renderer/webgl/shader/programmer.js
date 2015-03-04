@@ -139,46 +139,49 @@ class ShaderProgrammer {
       this.value(obj.material.color.toArray());
     }, 'vColor');
 
-    //if (world.lights.length > 0) {
+    vertexProgram.attribute('vec3', function (obj) {
+      this.value(obj.buffers.normals);
+    }, 'vNormal');
 
-      vertexProgram.attribute('vec3', function (obj) {
-        this.value(obj.buffers.normals);
-      }, 'vNormal');
+    vertexProgram.uniform('float', function (obj) {
+      this.value(obj.material.shininess);
+    }, 'fShininess');
 
-      vertexProgram.uniform('float', function (obj) {
-        this.value(obj.material.shininess);
-      }, 'fShininess');
+    vertexProgram.uniform('bool', function (obj) {
+      this.value(obj.material.specular);
+    }, 'bSpecular');
 
-      vertexProgram.uniform('bool', function (obj) {
-        this.value(obj.material.specular);
-      }, 'bSpecular');
+    vertexProgram.uniform('bool', function (obj) {
+      this.value(obj.material.diffuse);
+    }, 'bDiffuse');
 
-      vertexProgram.uniform('bool', function (obj) {
-        this.value(obj.material.diffuse);
-      }, 'bDiffuse');
+    vertexProgram.code('vec3 transformedNormal = nMatrix * vNormal;');
+    vertexProgram.code('vec3 normal = normalize(transformedNormal);');
+    vertexProgram.code('%lw = vec3(0.0, 0.0, 0.0);', {
+      lw: vertexProgram.varying('vec3', 'lightWeight')
+    });
 
-      vertexProgram.code('vec3 transformedNormal = nMatrix * vNormal;');
-      vertexProgram.code('vec3 normal = normalize(transformedNormal);');
-      vertexProgram.code('%lw = vec3(0.0, 0.0, 0.0);', {
-        lw: vertexProgram.varying('vec3', 'lightWeight')
-      });
+    for (var i in world.lights) {
+      world.lights[i].program(vertexProgram, fragmentProgram);
+    }
 
-      for (var i in world.lights) {
-        world.lights[i].program(vertexProgram, fragmentProgram);
-      }
+    fragmentProgram.code('vec4 outColor = vec4(%lw + %c, 1.0);\ngl_FragColor = outColor;', {
+      c: color,
+      lw: fragmentProgram.varying('vec3', 'lightWeight')
+    });
 
-      fragmentProgram.code('vec4 outColor = vec4(%lw + %c, 1.0);\ngl_FragColor = outColor;', {
-        c: color,
-        lw: fragmentProgram.varying('vec3', 'lightWeight')
-      });
 
-/*    } else {
+    /*
+     if (world.lights.length > 0) {
 
-      fragmentProgram.code('gl_FragColor = vec4(%c, 1.0);', {
-        c: color
-      });
+     } else {
 
-    }*/
+     fragmentProgram.code('gl_FragColor = vec4(%c, 1.0);', {
+     c: color
+     });
+
+     }
+     */
 
   }
 
