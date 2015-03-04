@@ -8,7 +8,7 @@ Well, LiThree is created for lightweight 3D projects. For example if you want to
 
 # Usage
 
-***You can check the demo a simple demo [here](http://codepen.io/mohebifar/pen/QwMWgO).***
+***You can check the demo a demo [here](dev.mohebifar.com/chemistry/molcanvas.js/examples/).***
 
 Make a world which will contain all your elements.
 
