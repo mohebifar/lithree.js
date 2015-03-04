@@ -458,12 +458,12 @@ var Interactive = (function (Emitter) {
     },
     updatePosition: {
       value: function updatePosition(x, y) {
-        var _getPosition = this._getPosition(x, y);
+        var _ref = this._getPosition(x, y);
 
-        var _getPosition2 = _slicedToArray(_getPosition, 2);
+        var _ref2 = _slicedToArray(_ref, 2);
 
-        var x = _getPosition2[0];
-        var y = _getPosition2[1];
+        x = _ref2[0];
+        y = _ref2[1];
 
 
         this.delta.x = this.lastPosition.x - x;
@@ -478,9 +478,10 @@ var Interactive = (function (Emitter) {
     },
     unproject: {
       value: function unproject(x, y, z) {
-        var camera = this.renderer.camera;
+        var renderer = this.renderer,
+            camera = renderer.camera;
 
-        var vector = new LiThree.Math.Vector3(x / renderer.width * 2 - 1, -(y / renderer.height) * 2 + 1, z);
+        var vector = new Vector3(x / renderer.width * 2 - 1, -(y / renderer.height) * 2 + 1, z);
 
         vector.unproject(camera);
 
@@ -1991,13 +1992,15 @@ var Vector3 = (function (Emitter) {
     },
     unproject: {
       value: function unproject(i) {
+        var matrix;
+
         if (i instanceof Matrix4) {
-          var matrix = i.invert();
+          matrix = i.invert();
         } else {
           var m = i.getMatrix().clone(),
               p = i.getProjection().clone();
 
-          var matrix = Matrix4.multiplyMatrices(m, p.invert());
+          matrix = Matrix4.multiplyMatrices(m, p.invert());
         }
 
         return this.applyProjection(matrix);

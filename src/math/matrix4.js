@@ -1,5 +1,5 @@
 import Vector3 from 'vector3.js';
-import Matrix3 from 'matrix3.js';
+import Vector4 from 'vector4.js';
 
 var EPSILON = 0.00001;
 

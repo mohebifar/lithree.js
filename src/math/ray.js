@@ -1,3 +1,5 @@
+import Vector3 from 'vector3.js';
+
 export default
 class Ray {
 

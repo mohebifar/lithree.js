@@ -1,4 +1,5 @@
 import Emitter from '../core/emitter.js';
+import Matrix4 from 'matrix4.js';
 
 export default
 class Vector3 extends Emitter {
@@ -173,13 +174,15 @@ class Vector3 extends Emitter {
   }
 
   unproject(i) {
-    if(i instanceof Matrix4) {
-      var matrix = i.invert();
+    var matrix;
+
+    if (i instanceof Matrix4) {
+      matrix = i.invert();
     } else {
       var m = i.getMatrix().clone(),
         p = i.getProjection().clone();
 
-      var matrix = Matrix4.multiplyMatrices(m, p.invert());
+      matrix = Matrix4.multiplyMatrices(m, p.invert());
     }
 
     return this.applyProjection(matrix);

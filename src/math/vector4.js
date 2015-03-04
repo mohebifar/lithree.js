@@ -1,4 +1,5 @@
 import Emitter from '../core/emitter.js';
+import Vector3 from 'vector3.js';
 
 export default
 class Vector4 extends Emitter {

@@ -1,5 +1,6 @@
 import Matrix4 from '../math/matrix4.js';
 import Vector3 from '../math/vector3.js';
+import Quaternion from '../math/quaternion.js';
 
 export default
 class PerspectiveCamera {

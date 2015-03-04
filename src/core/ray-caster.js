@@ -1,3 +1,6 @@
+import Vector3 from '../math/vector3.js';
+import Common from 'common.js';
+
 export default
 class RayCaster {
 
@@ -5,7 +8,7 @@ class RayCaster {
    * @constructor
    * @param {Ray} ray
    */
-  constructor(ray) {
+    constructor(ray) {
     this.ray = ray;
   }
 

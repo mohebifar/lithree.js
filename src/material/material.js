@@ -1,3 +1,5 @@
+import Color from '../core/color.js';
+
 export default
 class Material {
 

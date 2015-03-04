@@ -1,4 +1,5 @@
 import Emitter from '../core/emitter.js';
+import Vector3 from 'vector3.js';
 
 export default
 class Quaternion extends Emitter {
@@ -83,7 +84,7 @@ class Quaternion extends Emitter {
 
     this.emit('update');
 
-    return this
+    return this;
   }
 
   rotateX(rad) {

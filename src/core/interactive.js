@@ -1,4 +1,5 @@
 import Emitter from 'emitter.js';
+import Vector3 from '../math/vector3.js';
 
 export default
 class Interactive extends Emitter {
@@ -18,7 +19,7 @@ class Interactive extends Emitter {
   }
 
   updatePosition(x, y) {
-    var [x, y] = this._getPosition(x, y);
+    [x, y] = this._getPosition(x, y);
 
     this.delta.x = this.lastPosition.x - x;
     this.delta.y = this.lastPosition.y - y;
@@ -28,9 +29,10 @@ class Interactive extends Emitter {
   }
 
   unproject(x, y, z) {
-    var camera = this.renderer.camera;
+    var renderer = this.renderer,
+      camera = renderer.camera;
 
-    var vector = new LiThree.Math.Vector3(
+    var vector = new Vector3(
       ( x / renderer.width ) * 2 - 1,
       -( y / renderer.height ) * 2 + 1,
       z);
