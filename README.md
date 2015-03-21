@@ -4,7 +4,7 @@
 **lithree.js** is a lightweight 3D WebGL framework. It's just about 25kb. lithree.js is originally written in ES6 and is transcompiled to ES5.
 
 # When to use lithree.js
-Well, LiThree is created for lightweight 3D projects. For example if you want to create a website to preview some simple product, It's not relevant to load some heavy library like [three.js](https://github.com/mrdoob/three.js) which is about 450kb.
+LiThree is created for lightweight 3D projects. For example if you want to create a website to preview some simple product, It's not proper to load some heavy library like [three.js](https://github.com/mrdoob/three.js) which is about 450kb when minified.
 
 # Usage
 
